@@ -64,6 +64,28 @@
 \newcommand{\myAcademicYear}{Academic Year 2016-2017\xspace}
 \newcommand{\myAcademicYearIT}{Anno Accademico 2016-2017\xspace}
 
+%Commands from Pirotta, Restelli...
+\newcommand{\vtheta}{\boldsymbol{\theta}}
+\newcommand{\vTheta}{\boldsymbol{\Theta}}
+\newcommand{\realspace}{\mathbb R}      % realspace
+\newcommand{\pdim}{m}
+\newcommand{\transpose}[1]{{#1}^\texttt{T}}
+\newcommand{\EVV}[2][\ppvect \in \ppspace]{\EV_{#1}\left[{#2}\right]}
+\newcommand{\norm}[2][\infty]{\left\|#2\right\|_{#1}}
+
+%My commands
+\newcommand{\gradJ}[1]{\nabla_{#1}J_\mu(\vtheta)}
+\newcommand{\vphi}{\boldsymbol{\phi}}
+\newcommand{\DeltaJ}{J_{\mu}(\vtheta') - J_{\mu}(\vtheta)}
+\newcommand{\gradApp}[1]{\hat{\nabla}_{#1}J_{\mu}(\vtheta)}
+\newcommand{\gradSim}[1]{\tilde{\nabla}_{#1}J_{\mu}(\vtheta)}
+\newcommand{\gradRF}[1]{\hat{\nabla}_{#1}J_{\mu}^{RF}(\vtheta)}
+\newcommand{\gradPGT}[1]{\hat{\nabla}_{#1}J_{\mu}^{PGT}(\vtheta)}
+\newcommand{\gradGPOMDP}[1]{\hat{\nabla}_{#1}J_{\mu}^{G(PO)MDP}(\vtheta)}
+\newcommand{\gradDown}[1]{\underline{\hat{\nabla}_{#1}J_{\mu}}(\vtheta)}
+\newcommand{\gradUp}[1]{\overline{\hat{\nabla}_{#1}J_{\mu}}(\vtheta)}
+\newcommand{\eqdef}{\mathrel{\mathop:}=}
+
 % ********************************************************************
 % Setup, fine tuning, and useful commands
 % ********************************************************************
@@ -116,6 +138,7 @@
 \usepackage{fixltx2e} % fixes some LaTeX stuff
 \usepackage{microtype}
 \usepackage[normalem]{ulem} % to have strikethrough text
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
 
 \PassOptionsToPackage{printonlyused,smaller}{acronym}
 	\usepackage{acronym} % nice macros for handling all acronyms in the thesis
