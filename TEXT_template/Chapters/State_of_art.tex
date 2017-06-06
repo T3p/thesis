@@ -1,1 +1,85 @@
-\chapter{Safe policy gradient methods: state of the art}
+\chapter{Policy Gradient Methods: State of the Art}
+
+In this chapter we provide an overview of the most commonly used policy gradient methods. The aim is not to provide an exhaustive survey of policy gradient algorithms, but to give a proper context to the safe policy gradient approach, which represent the main focus of our work.
+
+.
+\section{Why Policy Gradient}
+Traditional \ac{RL} methods rely on the computation (or the estimation) of the action-value function $Q^{\pi}$. These so-called value function methods were first proposed for solving simple \ac{MDP}s characterized by small, discrete state and action spaces. They are also known as tabular methods, since the value function can be stored in a finite table. In this limited scenario, tabular algorithms have strong convergence guarantees and perform well in practice. However, they become unfeasible when the number of possible states and actions is too big or even infinite, such as in continuous \ac{MDP}s.
+The natural extension of tabular methods is to employ the function approximation tools known from supervised learning, such as neural networks, to represent $Q^{\pi}$. However, this approach have many problems, especially when applied to control tasks:
+\begin{itemize}
+\item Value function approximation methods have no guarantee of convergence, not even to locally optimal policies. In some applications, divergence may even damage the system.
+\item Greedy policies based on approximated value functions can be highly sensitive to small perturbations in the state, being unfeasible for tasks characterized by noise, e.g.\ control tasks with noisy sensors.
+\item Given the complexity of the value function representation (think of a multi-layer perceptron), it is difficult to isolate potentially dangerous behaviors.
+\end{itemize}
+Policy gradient methods bypass these problems by searching directly for the optimal policy. Convergence to a local optimum is guaranteed (also for stochastic methods), uncertainty in the state have controllable effects and policies can be made safe by design. Moreover, prior domain knowledge can be exploited to design policies suited for the specific tasks.
+
+\paragraph{} %Application examples
+Indeed, policy gradient methods have been successfully applied to complex control tasks. In \cite{Sehnke2008policy} the authors were able to solve a robot standing task, where a (simulated) biped robot must keep an erect position while perturbed by external forces. In \cite{kober_NIPS2008} Kober and Peters used policy search in combination with imitation learning to teach the Ball-in-a-Cup game to a real robotic arm. A similar approach was used in \cite{Peters2008natural} for a baseball swing task. In \cite{peters2010relative} policy search was used to play simulated robot table tennis. 
+
+
+\section{Likelihood Ratio Methods}
+Likelihood ratio methods include a large number of widely used policy gradient algorithms. 
+
+\subsection{From finite differences to likelihood ratio}
+Among the oldest policy gradient methods we find finite-difference methods, which arose in the stochastic simulation literature. The idea is to perturb the policy parameter $\vtheta$ many times, obtaining $\vtheta+\Delta\vtheta_1 \dots \vtheta+\Delta\vtheta_K$, and estimate for each perturbation the expected return difference $\Delta\hat{J}_i \simeq J(\vtheta+\Delta\vtheta_i) - J(\vtheta)$, by performing a number of sample trajectories. After collecting all these data, the policy gradient can be estimated by regression as:
+\[
+	\gradApp{\vtheta} = (\boldsymbol{\Delta\Theta}^T\boldsymbol{\Delta\Theta})^{-1}\boldsymbol{\Delta\Theta}^T\boldsymbol{\Delta\hat{J}}
+\]
+where $\boldsymbol{\Delta\Theta}^T = [\Delta\vtheta_1,\dots,\Delta\vtheta_K]^T$ and $\boldsymbol{\Delta\hat{J}} = [\Delta\hat{J}_1,\dots,\Delta\hat{J}_K]^T$. This method is easy to implement and very efficient when applied to deterministic tasks or pseudo-random number simulations. In real control tasks though, perturbing the policy parametrization without incurring in instability may not be trivial and noise can have a disastrous impact on performance. Moreover, gradient estimation requires a large number of trajectories.
+\paragraph{} %Likelihood methods
+The likelihood ratio approach allows to estimate the gradient even from a single trajectory, without the need of perturbing the parametrization. This method is due to Williams \cite{Williams1992}, but is better understood from the perspective of the Policy Gradient Theorem \cite{Sutton1999a}.
+By applying trivial differentiation rules to the expression of the policy gradient (see Theorem \ref{theo:pgt}), we have:
+\[
+	\gradJ{\vtheta} = \int_{\mathcal{S}}d_{\mu}^{\pi}(s)
+		\int_{\mathcal{A}}\pi_{\vtheta}(a \mid s)\score
+		Q^{\pi}(s,a)\mathrm{d}a\mathrm{d}s.
+\]
+This is known as the REINFORCE trick. The term
+\[
+	\score = \frac{\nabla_{\vtheta}\pi_{\vtheta}(s,a)}{\pi_{\vtheta}(s,a)}
+\]
+has many names: eligibility vector, characteristic eligibility, policy score and, of course, likelihood ratio.
+In terms of the joint distribution $\zeta$, the policy gradient is just:
+\[
+	\gradJ{\vtheta} = \mathop{\mathbf{E}}_{(s,a)\sim\zeta}\left[\score Q^{\pi}(s,a)\right].
+\]
+Since sampling state-action pairs from $\zeta$ is equivalent to following policy $\pi_{\vtheta}$, the gradient can be estimated from a single trajectory as:
+\[
+	\gradSim{\vtheta} = \langle\score Q^{\pi}(s,a)\rangle^H,
+\]
+where $\langle\cdot\rangle^H$ denotes sample average over $H$ time steps. Of course a more stable estimate can be obtained by averaging again over a batch of $N$ trajectories:
+\[
+	\gradApp{\vtheta} = \langle\langle\score Q^{\pi}(s,a)\rangle^H\rangle^N.
+\]
+
+\subsection{Baselines}
+A problem of the REINFORCE approach is the large variance of the estimate, which results in slower convergence.
+The Policy Gradient Theorem still holds when an arbitrary baseline $b(s)$ is subtracted from the action-value function:
+\[
+	\gradJ{\vtheta} = \mathop{\mathbf{E}}_{(s,a)\sim\zeta}
+		\left[\score (Q^{\pi}(s,a) - b(s))\right].
+\]
+The baseline can be chosen to reduce the variance of the gradient estimate without introducing any bias, speeding up convergence. A natural choice of baseline is the state-value function $V^{\pi}$:
+\begin{align*}
+	\gradJ{\vtheta} &= \mathop{\mathbf{E}}_{(s,a)\sim\zeta}
+		\left[\score (Q^{\pi}(s,a) - V^{\pi}(s))\right] \\
+		&= \mathop{\mathbf{E}}_{(s,a)\sim\zeta}
+				\left[\score (A^{\pi}(s,a))\right].
+\end{align*}
+The usage of the advantage function with the eligibility vector has an intuitive justification: to follow the policy gradient direction means to assign to the most advantageous actions the highest probability of being taken. 
+
+\subsection{The REINFORCE algorithm}
+
+\subsection{The PGT algorithm}
+
+
+\section{Beyond likelihood ratio}
+\subsection{Natural gradients}
+\subsection{Actor-critic methods}
+\subsection{Expectation-maximization}
+
+\section{Safe policy gradient methods}
+\subsection{The need for safe policy gradients}
+\subsection{The step size problem}
+\subsection{State of the art}
+\subsection{What to do next}

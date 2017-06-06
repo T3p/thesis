@@ -45,10 +45,15 @@ which allows to define the expected return $J$ as:
 \[
 	J_\mu^\pi = \int_{\mathcal{S}}d_{\mu}^{\pi}(s)\int_{\mathcal{A}}\pi(a \mid s)\mathcal{R}(s,a)\mathrm{d}a\mathrm{d}s.
 \]
+By introducing the joint distribution $\zeta$ between $d_{\mu}^{\pi}$ and $\pi$, we can express the expected return even more compactly:
+\[
+	J_\mu^\pi = \mathop{\mathbf{E}}_{(s,a)\sim\zeta}\left[\mathcal{R}(s,a)\right]
+\]
 The \ac{RL} problem can then be formulated as a stochastic optimization problem:
 \[
-	\pi^* \in \arg\max\limits_{\pi}J(\pi)
+	\pi^* \in \arg\max\limits_{\pi}J(\pi).
 \]
+
 
 \subsection{Value functions}
 Value functions provide a measure of how good a state, or a state-action pair, is under a policy $\pi$. They are powerful theoretical tools and are employed in many practical \ac{RL} algorithms.
@@ -67,9 +72,13 @@ For control purposes, it is more useful to define an action-value function $Q^\p
 	Q^{\pi}(s,a) = \mathcal{R}(s,a) + \gamma\int_{\mathcal{S}}\mathcal{P}(s'|s,a)
 		\int_{\mathcal{A}}\pi(a'|s')Q^{\pi}(s',a')\mathrm{d}a'\mathrm{d}s'.
 \]
+Finally, the difference between the two value functions is known as advantage function:
+\[
+	A^{\pi}(s,a) = Q^{\pi}(s,a) - V^{\pi}(s).
+\]
+Intuitively, $A(s,a)$ represents the advantage of taking action $a$ in state $s$ instead of drawing an action from the policy.
 
-
-\section{Policy Gradient Methods}
+\section{The Policy Gradient Approach}
 	In this section we describe in general terms a special class of \ac{RL} algorithms known as policy gradient methods, and we report some theoretical results that are of key importance for any treatment of such methods.
 
 \subsection{Definition}
@@ -93,15 +102,41 @@ In many practical tasks it is impossible, or unfeasible, to compute the exact po
 	\vtheta \gets \vtheta + \alpha\gradApp{\vtheta},
 \]
 where, at each learning iteration, $N$ trajectories need to be performed.
-Convergence to a local optimum is still guaranteed, provided that the angular difference between $\gradJ{\vtheta}$ and $\gradApp{\vtheta}$ is less than $\nicefrac{\pi}{2}$.
+Convergence to a local optimum is still guaranteed, provided that the angular difference between $\gradJ{\vtheta}$ and $\gradApp{\vtheta}$ is less than $nicefrac{\pi}{2}$.
 
-\subsection{Policy Gradient Theorem}
+\subsection{Policy Gradient Theorem and eligibility vector}
 The Policy Gradient Theorem is a result by Sutton \cite{Sutton1999a} that relates the policy gradient to the value function $Q^\pi$:
-\begin{theorem}[Continuous version of Theorem 1 from \cite{Sutton1999a}]
+\begin{theorem}[Continuous version of Theorem 1 from \cite{Sutton1999a}]\label{theo:pgt}
 For any \ac{MDP}
 \[
 	\gradJ{\vtheta} = \int_{\mathcal{S}}d_{\mu}^{\pi}(s)
 		\int_{\mathcal{A}} \nabla_{\vtheta}\pi_{\vtheta}(a \mid s)Q^{\pi}(s,a)\mathrm{d}a\mathrm{d}s.
 \]
 \end{theorem}
-This theorem is of key importance for most policy gradient algorithms.
+The Policy Gradient Theorem is of key importance for many policy gradient algorithms.
+
+\subsection{Common policy classes}
+Although there are no restriction on parameterized policies, some specific classes are used extensively in applications and have well studied properties. One of the most popular is the Gaussian policy, which in its most general form is defined as:
+\[
+	\pi_{\vtheta}(a \mid s) = \frac{1}{\sqrt{2\pi\sigma^2}}
+		\exp\left(-\frac{1}{2}\left(\frac{a-\mu_{\vtheta}(s)}
+		{\sigma_{\vtheta}(s)}\right)^2\right).
+\]
+A common form is the Gaussian policy with fixed standard deviation $\sigma$ and mean linear in a feature vector $\vphi(s)$:
+\[
+	\pi_{\vtheta}(a \mid s) = \frac{1}{\sqrt{2\pi\sigma^2}}\exp\left(
+		-\frac{1}{2}\left(\frac{a-\vtheta^T\boldsymbol{\phi}(s)}{\sigma}\right)^2\right),
+\]
+having eligibility vector:
+\[
+	\score = \frac{(a - \vtheta^T\vphi(s))\vphi(s)}{\sigma^2}.
+\]
+When the action space $\mathcal{A}$ is discrete, a common choice is the softmax policy:
+\[
+	\pi_{\vtheta}(a \mid s) = \frac{e^{\vtheta^T\vphi(s,a)}}
+		{\sum\limits_{a' \in \mathcal{A}}e^{\vtheta^T\vphi(s,a')}},
+\]
+having eligibility vector:
+\[
+	\score = \vphi(s,a) - \sum\limits_{a' \in \mathcal{A}}\pi_{\vtheta}(s \mid a)\vphi(s,a')
+\]
