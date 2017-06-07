@@ -45,16 +45,16 @@ In terms of the joint distribution $\zeta$, the policy gradient is just:
 \]
 Since sampling state-action pairs from $\zeta$ is equivalent to following policy $\pi_{\vtheta}$, the gradient can be estimated from a single trajectory as:
 \[
-	\gradSim{\vtheta} = \langle\score Q^{\pi}(s,a)\rangle^H,
+	\gradSim{\vtheta} = \langle\score Q^{\pi}(s,a)\rangle_H,
 \]
 where $\langle\cdot\rangle^H$ denotes sample average over $H$ time steps. Of course a more stable estimate can be obtained by averaging again over a batch of $N$ trajectories:
 \[
-	\gradApp{\vtheta} = \langle\langle\score Q^{\pi}(s,a)\rangle^H\rangle^N.
+	\gradApp{\vtheta} = \langle\langle\score Q^{\pi}(s,a)\rangle_H\rangle_N.
 \]
 
 \subsection{Baselines}
 A problem of the REINFORCE approach is the large variance of the estimate, which results in slower convergence.
-The Policy Gradient Theorem still holds when an arbitrary baseline $b(s)$ is subtracted from the action-value function:
+The Policy Gradient Theorem still holds when an arbitrary baseline $b(s)$ is subtracted from the action-value function, as shown in \cite{Williams1992}:
 \[
 	\gradJ{\vtheta} = \mathop{\mathbf{E}}_{(s,a)\sim\zeta}
 		\left[\score (Q^{\pi}(s,a) - b(s))\right].
@@ -69,9 +69,49 @@ The baseline can be chosen to reduce the variance of the gradient estimate witho
 The usage of the advantage function with the eligibility vector has an intuitive justification: to follow the policy gradient direction means to assign to the most advantageous actions the highest probability of being taken. 
 
 \subsection{The REINFORCE algorithm}
+In practical tasks, the exact value function $Q^{\pi}$ is not available and must be estimated. Episodic likelihood ratio algorithms estimate it from the total return at the end of the episode, assigning to each visited state-action pair a value in retrospective. The REINFORCE gradient estimator \cite{Williams1992} uses the total return directly:
+\[
+	\hat{\nabla}_{\vtheta}J_{\mu}^{RF}(\vtheta) = 
+		\left\langle
+		\sum\limits_{k=1}^H\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)
+		\left(\sum\limits_{l=1}^H\gamma^{l-1}r_l^n-b\right)\right\rangle_N.
+\]
+A problem of the REINFORCE algorithm is the high variance of the gradient estimate, which can be reduced by using a proper baseline. A variance-minimizing baseline can be found in \cite{Peters2008reinf}:
+\begin{align*}
+	b &= \frac{\left\langle\left(\sum\limits_{k=1}^H\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)\right)^2
+		\sum\limits_{l=1}^H\gamma^{l-1}r_l^n\right\rangle_N}
+		{\left\langle\left(\sum\limits_{k=1}^H\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)\right)^2
+		\right\rangle_N}.
+\end{align*}
+Note that, in the case $|\vtheta|>1$, all operations among vectors are to be intended per-component or, equivalently, each gradient component $\gradApp{\vtheta_i}$ can be computed separately.
 
-\subsection{The PGT algorithm}
-
+\subsection{The PGT/G(PO)MDP algorithm}
+A problem of the REINFORCE gradient estimator is that the value estimate for $(s_k^n,a_k^n)$ depends on past rewards. Two refinements are the PGT gradient estimator \cite{Sutton2000policy}:
+\[
+	\gradPGT{\vtheta} = 
+		\left\langle
+		\sum\limits_{k=1}^H\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)
+		\left(\sum\limits_{l=k}^H\gamma^{l-1}r_l^n-b\right)\right\rangle_N,
+\]
+and the G(PO)MDP gradient estimator \cite{Baxter2001infinite}:
+\[
+	\gradGPOMDP{\vtheta} = 
+			\left\langle
+			\sum\limits_{l=1}^H\left(\sum\limits_{k=1}^l
+			\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)\right)
+			(\gamma^{l-1}r_l^n-b)\right\rangle_N.
+\]
+Although the algorithms are different, the gradient estimator that is computed is exactly the same, i.e.\ $\gradPGT{\vtheta} = \gradGPOMDP{\vtheta}$, as shown in \cite{Peters2008reinf}. From now on we will refer to the PGT form.
+In the case $b=0$, the PGT gradient estimation has been proven to suffer from less variance than REINFORCE \cite{Zhao2011a} under mild assumptions. A variance-minimizing baseline for PGT is provided in \cite{Peters2008reinf}. Differently from the REINFORCE case, a separate baseline $b_l$ is used for each time step $l$:
+\begin{align*}
+	b_l &= \frac{\left\langle\left(\sum\limits_{k=1}^l\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)\right)^2
+		\gamma^{l-1}r_l^n\right\rangle_N}
+		{\left\langle\left(\sum\limits_{k=1}^l\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)\right)^2
+		\right\rangle_N} \\\\
+	\gradPGT{\vtheta} &= 
+		\left\langle
+		\sum\limits_{k=1}^H\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)			\left(\sum\limits_{l=k}^H\gamma^{l-1}r_l^n-b_l\right)\right\rangle_N	
+\end{align*}
 
 \section{Beyond likelihood ratio}
 \subsection{Natural gradients}
