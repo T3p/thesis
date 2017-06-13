@@ -1,9 +1,12 @@
-\chapter{Policy Gradient Methods: State of the Art}
+\chapter{State of the Art}
 
-In this chapter we provide an overview of the most commonly used policy gradient methods. The aim is not to provide an exhaustive survey of policy gradient algorithms, but to give a proper context to the safe policy gradient approach, which represent the main focus of our work.
+In this chapter we provide an overview of the most commonly used policy gradient methods, with a focus on safe approaches.
 
-.
-\section{Why Policy Gradient}
+
+\section{Policy Gradient in General}
+In this section we present common policy gradient algorithms. The aim is not to provide an exhaustive survey of policy gradient methods, but to give a proper context to the main topic of this and the following chapter: safe policy gradients.
+
+\subsection{Why policy gradient}\label{sec:why_pg}
 Traditional \ac{RL} methods rely on the computation (or the estimation) of the action-value function $Q^{\pi}$. These so-called value function methods were first proposed for solving simple \ac{MDP}s characterized by small, discrete state and action spaces. They are also known as tabular methods, since the value function can be stored in a finite table. In this limited scenario, tabular algorithms have strong convergence guarantees and perform well in practice. However, they become unfeasible when the number of possible states and actions is too big or even infinite, such as in continuous \ac{MDP}s.
 The natural extension of tabular methods is to employ the function approximation tools known from supervised learning, such as neural networks, to represent $Q^{\pi}$. However, this approach have many problems, especially when applied to control tasks:
 \begin{itemize}
@@ -15,10 +18,6 @@ Policy gradient methods bypass these problems by searching directly for the opti
 
 \paragraph{} %Application examples
 Indeed, policy gradient methods have been successfully applied to complex control tasks. In \cite{Sehnke2008policy} the authors were able to solve a robot standing task, where a (simulated) biped robot must keep an erect position while perturbed by external forces. In \cite{kober_NIPS2008} Kober and Peters used policy search in combination with imitation learning to teach the Ball-in-a-Cup game to a real robotic arm. A similar approach was used in \cite{Peters2008natural} for a baseball swing task. In \cite{peters2010relative} policy search was used to play simulated robot table tennis. 
-
-
-\section{Likelihood Ratio Methods}
-Likelihood ratio methods include a large number of widely used policy gradient algorithms. 
 
 \subsection{From finite differences to likelihood ratio}
 Among the oldest policy gradient methods we find finite-difference methods, which arose in the stochastic simulation literature. The idea is to perturb the policy parameter $\vtheta$ many times, obtaining $\vtheta+\Delta\vtheta_1 \dots \vtheta+\Delta\vtheta_K$, and estimate for each perturbation the expected return difference $\Delta\hat{J}_i \simeq J(\vtheta+\Delta\vtheta_i) - J(\vtheta)$, by performing a number of sample trajectories. After collecting all these data, the policy gradient can be estimated by regression as:
@@ -83,7 +82,7 @@ A problem of the REINFORCE algorithm is the high variance of the gradient estima
 		{\left\langle\left(\sum\limits_{k=1}^H\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)\right)^2
 		\right\rangle_N}.
 \end{align*}
-Note that, in the case $|\vtheta|>1$, all operations among vectors are to be intended per-component or, equivalently, each gradient component $\gradApp{\vtheta_i}$ can be computed separately.
+Note that, in the case $|\vtheta|>1$, all operations among vectors are to be intended per-component or, equivalently, each gradient component $\gradApp{\vtheta_i}$ must be computed separately.
 
 \subsection{The PGT/G(PO)MDP algorithm}
 A problem of the REINFORCE gradient estimator is that the value estimate for $(s_k^n,a_k^n)$ depends on past rewards. Two refinements are the PGT gradient estimator \cite{Sutton2000policy}:
@@ -113,13 +112,61 @@ In the case $b=0$, the PGT gradient estimation has been proven to suffer from le
 		\sum\limits_{k=1}^H\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)			\left(\sum\limits_{l=k}^H\gamma^{l-1}r_l^n-b_l\right)\right\rangle_N	
 \end{align*}
 
-\section{Beyond likelihood ratio}
+
 \subsection{Natural gradients}
+The algorithms described so far use the so-called vanilla policy gradient, i.e.\ an unbiased estimate of the true gradient w.r.t.\ policy parameters.
+Since such algorithms perform a search in parameter space $\Theta$, the performance is strongly depends on the policy parametrization.
+Natural policy gradients allow to search directly in policy space, independently on the parametrization. The natural policy gradient update rule is \cite{Kakade:2001}:
+\[
+	\vtheta \gets \vtheta + F_{\vtheta}\gradJ{\vtheta},
+\]
+where $F_{\vtheta}$ is the Fisher information matrix:
+\begin{align*}
+	F_{\vtheta} &= \int_{\mathcal{S}}d_{\mu}^{\pi}(s)
+			\int_{\mathcal{A}}\pi_{\vtheta}(a \mid s)\score
+			\score^T\mathrm{d}a\mathrm{d}s \\
+			&\simeq \langle\score\score^T\rangle_H.
+\end{align*}
+The parameter update is in the direction of a rotated policy gradient. Since the angular difference is never more than $\nicefrac{\pi}{2}$ \cite{Amari1998natural}, convergence to a local optimum is still guaranteed. 
+Although a good policy parametrization can yield better performance for specific problems, natural policy gradients offer a more general approach and have shown effective in practice \cite{Peters2008natural}.
+
 \subsection{Actor-critic methods}
-\subsection{Expectation-maximization}
+Actor-critic methods try to combine policy search and value function estimation to perform low-variance gradient updates. The "actor" is a parametrized policy $\pi_{\vtheta}$, which can be updated as in vanilla policy gradient algorithms. For this reason, the policy gradient methods described so far are also called critic-only. The "critic" is an estimate of the action-value function $\hat{Q}_{\boldsymbol{w}}$, where $\boldsymbol{w}$ is a parameter vector. The approximate value-function methods briefly mentioned in Section \ref{sec:why_pg} can be thought as critic-only. The \ac{RL} literature provides a great number of methods to learn a value function estimate from experience \cite{Sutton:1998:IRL:551283}. We provide an example of episodic value-function parameter update:
+\[
+	\boldsymbol{w} \gets \boldsymbol{w} + \beta\langle
+		(R_t-\hat{Q}_{\boldsymbol{w}}(s_t,a_t))
+		\nabla_{\boldsymbol{w}}\hat{Q}_{\boldsymbol{w}}(s_t,a_t)\rangle_H,
+\] 
+where $R_t = \sum\limits_{k=0}^{\infty}\gamma^kr_{t+k}$ and $\beta$ is just a learning rate.
+Actor and critic meet when $\hat{Q}_{\boldsymbol{w}}$ is used to compute the policy gradient used to update $\vtheta$:
+\begin{equation}\label{eq:ac_update} 
+	\vtheta \gets \vtheta + \langle\score \hat{Q}_{\boldsymbol{w}}(s,a)\rangle_H.
+\end{equation}
+This approach exploits the predictive power of approximate value functions while preserving the nice theoretical properties of the policy gradient. Under some assumption on the critic function (see Theorem 2 in \cite{Sutton1999a}), the Policy Gradient Theorem is still valid when $\hat{Q}_{\boldsymbol{w}}$ is used in place of the true value function $Q^\pi$:
+\[
+	\gradJ{\vtheta} = \int_{\mathcal{S}}d_{\mu}^{\pi}(s)
+		\int_{\mathcal{A}}\pi_{\vtheta}(a \mid s)\score
+		\hat{Q}_{\boldsymbol{w}}(s,a)\mathrm{d}a\mathrm{d}s.
+\]
+This means that parameter update (\ref{eq:ac_update}) is still in the direction of the policy gradient, guaranteeing convergence to a local optimum.
+For a recent survey of actor-critic methods refer to \cite{grondman2012survey}, which reports also examples of the usage of natural gradients in combination with the actor-critic approach.
 
 \section{Safe policy gradient methods}
+In this section we present the state of the art on monotonically improving policy gradient methods, which are also known as conservative or safe approaches. In the following we will refer to them as safe policy gradient methods.
+
 \subsection{The need for safe policy gradients}
-\subsection{The step size problem}
+Exploration is a key component of \ac{RL} algorithms. Through exploration, new states are discovered and new actions are tried and evaluated, increasing the agent's knowledge of the environment. The information gain, though, is paid in terms of performance, since gathering new knowledge takes precious time that could be spent in performing a good policy, based on the knowledge that has already been acquired. This is known as the exploration-exploitation dilemma. In policy gradient methods, exploration can be regulated at two levels: the intrinsic stochasticity of the policy (e.g. by changing the standard deviation of a Gaussian policy) and the parameter updates. We will focus on the latter, although the two problems are not entirely independent. 
+\paragraph{}In terms of the policy performance $J_\mu(\vtheta)$, exploratory updates can produce oscillations. If we could plot the exact value of $J_\mu(\vtheta)$ over learning iterations, the policy gradient methods described in the previous subsections would show positive-trend zig-zag progressions. When learning is performed on a simulated task, it is natural to favor exploration, since all that counts is how good the final policy is. This is no longer true when learning is performed on a real system, like in the scenarios presented in the introduction. In this case, uncontrolled exploratory behavior can cause one or both of the following issues:
+\begin{itemize}
+\item Dangerous behavior: low performance peaks may correspond to large deviations from the initial policy. Even if the initial policy has been designed to be safe, such deviations may result in behavior able to damage the system.
+\item Poor long-term performance: when learning is performed simultaneously with production, e.g.\ to automatically adjust an existing optimal policy to small changes in the environment, oscillations in the per-episode performance are paid in term of long-term performance when they are not justified by a relevant enough policy improvement.
+\item Selection of suboptimal policies: If the learning process has a fixed duration or must be stopped for some reason, oscillations may lead to the selection of a policy that is not the best seen so far, or is even worse than the initial policy. In highly stochastic environments it can be very difficult to manually reject such sub-par policies.
+\end{itemize} 
+From these problems comes the necessity of policy updates that are monotonically increasing, i.e.\ safe policy gradients.
+
+\subsection{The step-size problem}
+Most of the safe policy gradient methods that have been proposed focus on the selection of the proper step size $\alpha$.
+The step size regulates the magnitude of the parameter updates. Although the relationship between $\Delta\vtheta$ and the actual change in the policy is parametrization-dependent (at least for vanilla policy gradients) and may be non-trivial, in general small step sizes produce small changes in the policy, hence small performance oscillations. However, reducing the step-size also reduces the convergence speed, which is a major drawback in most applications. To face this trade-off, the step size can be made adaptive, e.g.\ by making it a function of the policy gradient. Many of the methods described in the remaining part of this section follow this approach, which is also the starting point of our main contribution.
+
 \subsection{State of the art}
 \subsection{What to do next}

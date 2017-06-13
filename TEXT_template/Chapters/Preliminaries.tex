@@ -142,4 +142,16 @@ having eligibility vector:
 \]
 
 \subsection{A general policy gradient algorithm}
-TODO
+We provide here the skeleton of a general policy gradient algorithm: 
+\begin{algorithm}[H]
+\caption{A general policy gradient algorithm}\label{alg:general}
+\begin{algorithmic}
+\State set initial policy parametrization $\vtheta$
+\While{not converged} 
+\State perform $N$ trajectories following policy $\pi_{\vtheta}$
+\State compute policy gradient estimate $\gradApp{\vtheta}$
+\State $\vtheta \gets \vtheta + \alpha\gradApp{\vtheta}$
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
+Many elements are left open in this schema: how to pick batch size $N$ and step size $\alpha$, what class of policies to use, how to compute the gradient estimate and how to devise a practical stopping condition. In the following section we will see actual policy gradient algorithms, all adding details or introducing small variations to this general schema. 

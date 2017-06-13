@@ -1,0 +1,75 @@
+\chapter{Extension to Softmax Policies}
+
+\begin{lemma}\label{lem:softmax_d2}
+If $\pi_{\vtheta}$ is a softmax policy:
+\[
+\left| \frac{\partial^2\pi_{\vtheta}(a \mid s)}
+	{\partial\theta_i\partial\theta_j}\right| \leq
+	6M_{\phi}^2
+\]
+\end{lemma}
+\begin{proof}
+\begin{align*}
+\left|\frac{\partial^2\pi_{\vtheta}(a \mid s)}
+		{\partial\theta_i\partial\theta_j}\right|
+		&= \left| \pi_{\vtheta}(a\mid s)\left(
+		\phi_j(s,\cdot)\phi_i(s,\cdot) -  \phi_i(s,\cdot)\expected{a'}{\vtheta}{\phi_j(s,\cdot)} - \phi_j(s,\cdot)\expected{a'}{\vtheta}{\phi_i(s,\cdot)}\right.\right. \\
+		&\left.\left.+ 2\expected{a'}{\vtheta}{\phi_i(s,\cdot)}\expected{a'}{\vtheta}{\phi_j(s,\cdot)} - \expected{a'}{\vtheta}{\phi_i(s,\cdot)\phi_j(s,\cdot)}\right)\right| \\
+		\leq 6M_\phi^2
+\end{align*}
+\end{proof}
+
+\begin{lemma}\label{lem:softmax_diff}
+If $\pi_{\vtheta}$ is a softmax policy and $\vtheta' = \vtheta+\Lambda\gradJ{\vtheta}$:
+\[
+\pi_{\vtheta'}(a \mid s) - \pi_{\vtheta}(a \mid s) \geq 
+	\nabla_{\vtheta}\pi_{\vtheta}(a \mid s)^T\Lambda\gradJ{\vtheta} -
+	6M_{\phi}^2\norm[1]{\Lambda\gradJ{\vtheta}}^2
+\]
+\end{lemma}
+\begin{proof}
+It follows from the application of Lemma \ref{lem:softmax_d2} to Taylor's expansion.
+\end{proof}
+
+\begin{lemma}\label{lem:softmax_infnorm}
+If $\pi_{\vtheta}$ is a softmax policy and $\vtheta' = \vtheta+\Lambda\gradJ{\vtheta}$:
+\[
+	\norm[\infty]{\pi_{\vtheta'} - \pi_{\vtheta}}^2 \leq 4M_\phi\norm[1]{\Lambda\gradJ{\vtheta}}
+\]
+\end{lemma}
+\begin{proof}
+By Pinsker's inequality:
+\begin{align*}
+\norm[\infty]{\pi_{\vtheta'} - \pi_{\vtheta}}^2 = \sup_s\norm[1]{\pi_{\vtheta'} - \pi_{\vtheta}}^2 \leq \sup_s\left(2H(\pi_{\vtheta'}\mid\mid\pi_{\vtheta})\right),
+\end{align*}
+where $H(\cdot\mid\mid\cdot)$ is the Kullback-Liebler divergence, which in this case can be bounded as:
+\begin{align*}
+H(\pi_{\vtheta'},\pi_{\vtheta}) &= 
+\sum_{a \in \mathcal{A}}
+	\frac{e^{\vtheta'^T\phi(s,a)}}{\sum_{a'\in\mathcal{A}}e^{\vtheta'^T\phi(s,a')}}
+	\log\frac{e^{\vtheta'^T\phi(s,a)}\sum_{a'\in\mathcal{A}}e^{\vtheta^T\phi(s,a')}}
+	{e^{\vtheta^T\phi(s,a)}\sum_{a'\in\mathcal{A}}e^{\vtheta'^T\phi(s,a')}} \\
+	&= \expected{a}{\vtheta'}{
+	\Delta\vtheta^T\phi(s,a) + \log\frac{\sum_{a'\in\mathcal{A}}e^{\vtheta^T\phi(s,a')}}
+	{\sum_{a'\in\mathcal{A}}e^{\vtheta'^T\phi(s,a')}}} \\
+	&= \expected{a}{\vtheta'}{
+	\Delta\vtheta^T\phi(s,a) + \log\frac{\sum_{a'\in\mathcal{A}}e^{\vtheta^T\phi(s,a')}}		{\sum_{a'\in\mathcal{A}}e^{\vtheta^T\phi(s,a')}e^{\Delta\vtheta^T\phi(s,a')}}} \\
+	&\leq \expected{a}{\vtheta'}{
+	\norm[1]{\Delta\vtheta}M_\phi + \log\frac{\cancel{\sum_{a'\in\mathcal{A}}e^{\vtheta^T\phi(s,a')}}}
+	{e^{-\norm[1]{\Delta\vtheta}M_\phi}\cancel{\sum_{a'\in\mathcal{A}}e^{\vtheta^T\phi(s,a')}}}} \\
+	&= 2\norm[1]{\Delta\vtheta}M_\phi = 2M_\phi\norm[1]{\Lambda\gradJ{\vtheta}} 	
+\end{align*}
+The rest of the proof is trivial.
+\end{proof}
+
+\begin{theorem}
+If $\pi_{\vtheta}$ is a softmax policy and $\vtheta' = \vtheta+\Lambda\gradJ{\vtheta}$:
+\begin{align*}
+\DeltaJ &\geq \gradJ{\vtheta}^T\Lambda\gradJ{\vtheta} \\
+	&- \frac{6M_{\phi}^2|\mathcal{A}|R\norm[1]{\Lambda\gradJ{\vtheta}}^2}{(1-\gamma)^2} -
+	\frac{2\gamma M_{\phi}R\norm[1]{\Lambda\gradJ{\vtheta}}}{(1-\gamma)^3}
+\end{align*}
+\end{theorem}
+\begin{proof}
+It's enough to plug the results from Lemmas \ref{lem:softmax_diff} and \ref{lem:softmax_d2} into Lemma 3.1 from \cite{Pirotta2013adaptive}.
+\end{proof}
