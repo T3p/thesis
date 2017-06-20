@@ -40,8 +40,8 @@
 % ****************************************************************
 % 2. Personal data and user ad-hoc commands
 % ****************************************************************
-\newcommand{\myTitle}{Adaptive Batch Size for Policy Gradient Methods\xspace}
-\newcommand{\myTitleIT}{Batch size adattiva per metodi policy gradient\xspace}
+\newcommand{\myTitle}{Adaptive Batch Size for Safe Policy Gradient Methods\xspace}
+\newcommand{\myTitleIT}{Batch size adattiva per metodi policy gradient safe\xspace}
 \newcommand{\myFirstAuthorName}{Matteo Papini\xspace}
 \newcommand{\myMatrFirstAuthor}{850421\xspace}
 \newcommand{\mySecondAuthorName}{\xspace}
@@ -86,7 +86,7 @@
 \newcommand{\gradUp}[1]{\overline{\hat{\nabla}_{#1}J_{\mu}}(\vtheta)}
 \newcommand{\eqdef}{\mathrel{\mathop:}=}
 \newcommand{\score}{\nabla_{\vtheta}\log\pi_{\vtheta}(a \mid s)}
-\newcommand{\expected}[3]{\mathop{\mathbf{E}}_{#1\sim\pi_{#2}}\left[#3\right]}
+\newcommand{\expected}[3]{\mathop{\mathbf{E}}_{#1\sim{#2}}\left[#3\right]}
 
 % ********************************************************************
 % Setup, fine tuning, and useful commands

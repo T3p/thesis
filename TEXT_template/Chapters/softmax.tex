@@ -13,8 +13,8 @@ If $\pi_{\vtheta}$ is a softmax policy:
 \left|\frac{\partial^2\pi_{\vtheta}(a \mid s)}
 		{\partial\theta_i\partial\theta_j}\right|
 		&= \left| \pi_{\vtheta}(a\mid s)\left(
-		\phi_j(s,\cdot)\phi_i(s,\cdot) -  \phi_i(s,\cdot)\expected{a'}{\vtheta}{\phi_j(s,\cdot)} - \phi_j(s,\cdot)\expected{a'}{\vtheta}{\phi_i(s,\cdot)}\right.\right. \\
-		&\left.\left.+ 2\expected{a'}{\vtheta}{\phi_i(s,\cdot)}\expected{a'}{\vtheta}{\phi_j(s,\cdot)} - \expected{a'}{\vtheta}{\phi_i(s,\cdot)\phi_j(s,\cdot)}\right)\right| \\
+		\phi_j(s,\cdot)\phi_i(s,\cdot) -  \phi_i(s,\cdot)\expected{a'}{\pi_{\vtheta}}{\phi_j(s,\cdot)} - \phi_j(s,\cdot)\expected{a'}{\pi_{\vtheta}}{\phi_i(s,\cdot)}\right.\right. \\
+		&\left.\left.+ 2\expected{a'}{\pi_{\vtheta}}{\phi_i(s,\cdot)}\expected{a'}{\pi_{\vtheta}}{\phi_j(s,\cdot)} - \expected{a'}{\pi_{\vtheta}}{\phi_i(s,\cdot)\phi_j(s,\cdot)}\right)\right| \\
 		\leq 6M_\phi^2
 \end{align*}
 \end{proof}
@@ -49,12 +49,12 @@ H(\pi_{\vtheta'},\pi_{\vtheta}) &=
 	\frac{e^{\vtheta'^T\phi(s,a)}}{\sum_{a'\in\mathcal{A}}e^{\vtheta'^T\phi(s,a')}}
 	\log\frac{e^{\vtheta'^T\phi(s,a)}\sum_{a'\in\mathcal{A}}e^{\vtheta^T\phi(s,a')}}
 	{e^{\vtheta^T\phi(s,a)}\sum_{a'\in\mathcal{A}}e^{\vtheta'^T\phi(s,a')}} \\
-	&= \expected{a}{\vtheta'}{
+	&= \expected{a}{\pi_{\vtheta'}}{
 	\Delta\vtheta^T\phi(s,a) + \log\frac{\sum_{a'\in\mathcal{A}}e^{\vtheta^T\phi(s,a')}}
 	{\sum_{a'\in\mathcal{A}}e^{\vtheta'^T\phi(s,a')}}} \\
-	&= \expected{a}{\vtheta'}{
+	&= \expected{a}{\pi_{\vtheta'}}{
 	\Delta\vtheta^T\phi(s,a) + \log\frac{\sum_{a'\in\mathcal{A}}e^{\vtheta^T\phi(s,a')}}		{\sum_{a'\in\mathcal{A}}e^{\vtheta^T\phi(s,a')}e^{\Delta\vtheta^T\phi(s,a')}}} \\
-	&\leq \expected{a}{\vtheta'}{
+	&\leq \expected{a}{\pi_{\vtheta'}}{
 	\norm[1]{\Delta\vtheta}M_\phi + \log\frac{\cancel{\sum_{a'\in\mathcal{A}}e^{\vtheta^T\phi(s,a')}}}
 	{e^{-\norm[1]{\Delta\vtheta}M_\phi}\cancel{\sum_{a'\in\mathcal{A}}e^{\vtheta^T\phi(s,a')}}}} \\
 	&= 2\norm[1]{\Delta\vtheta}M_\phi = 2M_\phi\norm[1]{\Lambda\gradJ{\vtheta}} 	

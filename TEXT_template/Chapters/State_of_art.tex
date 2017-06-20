@@ -1,165 +1,151 @@
-\chapter{State of the Art}
+\chapter{Safe Reinforcement Learning:\newline State of the Art}
+The aim of this chapter is to present the state of the art in safe approaches to Reinforcement Learning, also known as conservative or monotonically improving methods. 
 
-In this chapter we provide an overview of the most commonly used policy gradient methods, with a focus on safe approaches.
+\section{Problem definition and motivation}
+\subsection{The policy oscillation problem}
+Safe \ac{RL} algorithms address a problem known as policy oscillation, first studied in the context of approximate policy iteration and not yet fully understood (see for instance \cite{Bertsekas2011api}, \cite{wagner2011reinterpretation}). Policy oscillation affects approximate \ac{RL} algorithms and manifests as a non-monotonic performance $J_\mu(\pi)$ over learning iterations. In parametric methods, a consequence is that the convergence of the parameter vector to a stationary point may not correspond to an increasing performance, but to an oscillating one. Even when the trend of $J_\mu(\pi)$ is generally positive, large oscillations can be unacceptable for some applications.
+Among the main recognized causes of policy oscillation are the entity of approximation errors and the magnitude of policy updates.
+To explain the phenomenon in more detail, we restrict our analysis to policy gradient methods. However, the nature of the problem is fundamentally the same also for policy iteration methods, as shown by Wagner \cite{wagner2011reinterpretation}. For policy gradient methods, non-monotonic improvement means that in some cases $J_\mu(\vtheta+\alpha\gradApp{\vtheta}) \leq J_\mu(\vtheta)$. The two main causes are:
+\begin{enumerate}
+\item The magnitude of the updates, controlled by the step size $\alpha$. Large parameter updates may result in overshooting in policy space, producing oscillation around a local optimum.
+\item The policy gradient estimation error. The variance of $\gradApp{\vtheta}$ affects the quality of the updates in terms of direction, and may even produce updates in non-improving directions.
+\end{enumerate} 
 
-
-\section{Policy Gradient in General}
-In this section we present common policy gradient algorithms. The aim is not to provide an exhaustive survey of policy gradient methods, but to give a proper context to the main topic of this and the following chapter: safe policy gradients.
-
-\subsection{Why policy gradient}\label{sec:why_pg}
-Traditional \ac{RL} methods rely on the computation (or the estimation) of the action-value function $Q^{\pi}$. These so-called value function methods were first proposed for solving simple \ac{MDP}s characterized by small, discrete state and action spaces. They are also known as tabular methods, since the value function can be stored in a finite table. In this limited scenario, tabular algorithms have strong convergence guarantees and perform well in practice. However, they become unfeasible when the number of possible states and actions is too big or even infinite, such as in continuous \ac{MDP}s.
-The natural extension of tabular methods is to employ the function approximation tools known from supervised learning, such as neural networks, to represent $Q^{\pi}$. However, this approach have many problems, especially when applied to control tasks:
+\subsection{The need for safe methods}
+Both of the policy oscillation causes that have been described pose a trade-off between monotonic improvement and speed of convergence. Using small step sizes results in more conservative policy updates, reducing performance oscillation. On the other hand, a small step size can heavily affect convergence speed. Similarly, computing more accurate policy gradient estimates typically requires a large number of samples. Even if the batch size does not affect directly the number of iterations to convergence, it can affect the actual learning time, especially when collecting sample trajectories is time-wise expensive. The resulting trade-off is similar to the well known exploration-exploitation dilemma, and is particularly evident when learning is performed on real systems. In a simulated task with no time limitations, neither convergence speed nor oscillation are major issues, unless convergence is compromised. Instead, in more realistic scenarios, oscillation itself may cause the following problems:
 \begin{itemize}
-\item Value function approximation methods have no guarantee of convergence, not even to locally optimal policies. In some applications, divergence may even damage the system.
-\item Greedy policies based on approximated value functions can be highly sensitive to small perturbations in the state, being unfeasible for tasks characterized by noise, e.g.\ control tasks with noisy sensors.
-\item Given the complexity of the value function representation (think of a multi-layer perceptron), it is difficult to isolate potentially dangerous behaviors.
-\end{itemize}
-Policy gradient methods bypass these problems by searching directly for the optimal policy. Convergence to a local optimum is guaranteed (also for stochastic methods), uncertainty in the state have controllable effects and policies can be made safe by design. Moreover, prior domain knowledge can be exploited to design policies suited for the specific tasks.
+\item Dangerous behavior: low performance peaks may correspond to large deviations from the initial policy. Even if the initial policy has been designed to be safe, such deviations may result in behavior able to damage the system.
+\item Poor long-term performance: Consider the scenario in which learning is performed simultaneously with production, e.g.\ to automatically adjust an existing optimal policy to small changes in the environment, either in a real-time manner or by temporary stopping production. Oscillations in the per-episode performance are paid in term of long-term performance when they are not justified by a relevant enough overall policy improvement. This loss is similar to the concept of regret caused by exploration.
+\item Selection of suboptimal policies: if the learning process has a fixed duration or must be stopped for some reason, oscillations may lead to the selection of a policy that is not the best seen so far, or is even worse than the initial policy. In highly stochastic environments it can be very difficult to manually reject such sub-par policies, and testing all the policies seen so far may be prohibitively expensive.
+\end{itemize} 
+From all these problems comes the necessity of policy updates that are monotonically increasing.
 
-\paragraph{} %Application examples
-Indeed, policy gradient methods have been successfully applied to complex control tasks. In \cite{Sehnke2008policy} the authors were able to solve a robot standing task, where a (simulated) biped robot must keep an erect position while perturbed by external forces. In \cite{kober_NIPS2008} Kober and Peters used policy search in combination with imitation learning to teach the Ball-in-a-Cup game to a real robotic arm. A similar approach was used in \cite{Peters2008natural} for a baseball swing task. In \cite{peters2010relative} policy search was used to play simulated robot table tennis. 
+\section{Safe Policy Iteration}\label{sec:spi}
+In policy iteration, policy oscillation can arise each time approximation is used either in the evaluation step or in the improvement step.
+In this section we present the main safe approaches approximate to policy iteration, starting from the seminal work by Kakade and Langford \cite{kakade2002approximately}.
 
-\subsection{From finite differences to likelihood ratio}
-Among the oldest policy gradient methods we find finite-difference methods, which arose in the stochastic simulation literature. The idea is to perturb the policy parameter $\vtheta$ many times, obtaining $\vtheta+\Delta\vtheta_1 \dots \vtheta+\Delta\vtheta_K$, and estimate for each perturbation the expected return difference $\Delta\hat{J}_i \simeq J(\vtheta+\Delta\vtheta_i) - J(\vtheta)$, by performing a number of sample trajectories. After collecting all these data, the policy gradient can be estimated by regression as:
+\subsection{Conservative Policy Iteration}
+In \cite{kakade2002approximately}, Kakade and Langford address the policy oscillation problem by limiting the magnitude of the policy updates.
+Let $\pi$ be the current policy and $\pi'$ a greedy policy w.r.t.\ the latest action-value estimate, i.e. :
 \[
-	\gradApp{\vtheta} = (\boldsymbol{\Delta\Theta}^T\boldsymbol{\Delta\Theta})^{-1}\boldsymbol{\Delta\Theta}^T\boldsymbol{\Delta\hat{J}}
+	\pi'(a \mid s) \in \arg\max\limits_{a \in \mathcal{A}} \hat{Q}^{\pi}(s,a)
 \]
-where $\boldsymbol{\Delta\Theta}^T = [\Delta\vtheta_1,\dots,\Delta\vtheta_K]^T$ and $\boldsymbol{\Delta\hat{J}} = [\Delta\hat{J}_1,\dots,\Delta\hat{J}_K]^T$. This method is easy to implement and very efficient when applied to deterministic tasks or pseudo-random number simulations. In real control tasks though, perturbing the policy parametrization without incurring in instability may not be trivial and noise can have a disastrous impact on performance. Moreover, gradient estimation requires a large number of trajectories.
-\paragraph{} %Likelihood methods
-The likelihood ratio approach allows to estimate the gradient even from a single trajectory, without the need of perturbing the parametrization. This method is due to Williams \cite{Williams1992}, but is better understood from the perspective of the Policy Gradient Theorem \cite{Sutton1999a}.
-By applying trivial differentiation rules to the expression of the policy gradient (see Theorem \ref{theo:pgt}), we have:
+The traditional approximate policy update is:
 \[
-	\gradJ{\vtheta} = \int_{\mathcal{S}}d_{\mu}^{\pi}(s)
-		\int_{\mathcal{A}}\pi_{\vtheta}(a \mid s)\score
-		Q^{\pi}(s,a)\mathrm{d}a\mathrm{d}s.
+	\pi_{new}(a \mid s) = \pi'(a \mid s).
 \]
-This is known as the REINFORCE trick. The term
-\[
-	\score = \frac{\nabla_{\vtheta}\pi_{\vtheta}(s,a)}{\pi_{\vtheta}(s,a)}
-\]
-has many names: eligibility vector, characteristic eligibility, policy score and, of course, likelihood ratio.
-In terms of the joint distribution $\zeta$, the policy gradient is just:
-\[
-	\gradJ{\vtheta} = \mathop{\mathbf{E}}_{(s,a)\sim\zeta}\left[\score Q^{\pi}(s,a)\right].
-\]
-Since sampling state-action pairs from $\zeta$ is equivalent to following policy $\pi_{\vtheta}$, the gradient can be estimated from a single trajectory as:
-\[
-	\gradSim{\vtheta} = \langle\score Q^{\pi}(s,a)\rangle_H,
-\]
-where $\langle\cdot\rangle^H$ denotes sample average over $H$ time steps. Of course a more stable estimate can be obtained by averaging again over a batch of $N$ trajectories:
-\[
-	\gradApp{\vtheta} = \langle\langle\score Q^{\pi}(s,a)\rangle_H\rangle_N.
-\]
-
-\subsection{Baselines}
-A problem of the REINFORCE approach is the large variance of the estimate, which results in slower convergence.
-The Policy Gradient Theorem still holds when an arbitrary baseline $b(s)$ is subtracted from the action-value function, as shown in \cite{Williams1992}:
-\[
-	\gradJ{\vtheta} = \mathop{\mathbf{E}}_{(s,a)\sim\zeta}
-		\left[\score (Q^{\pi}(s,a) - b(s))\right].
-\]
-The baseline can be chosen to reduce the variance of the gradient estimate without introducing any bias, speeding up convergence. A natural choice of baseline is the state-value function $V^{\pi}$:
-\begin{align*}
-	\gradJ{\vtheta} &= \mathop{\mathbf{E}}_{(s,a)\sim\zeta}
-		\left[\score (Q^{\pi}(s,a) - V^{\pi}(s))\right] \\
-		&= \mathop{\mathbf{E}}_{(s,a)\sim\zeta}
-				\left[\score (A^{\pi}(s,a))\right].
-\end{align*}
-The usage of the advantage function with the eligibility vector has an intuitive justification: to follow the policy gradient direction means to assign to the most advantageous actions the highest probability of being taken. 
-
-\subsection{The REINFORCE algorithm}
-In practical tasks, the exact value function $Q^{\pi}$ is not available and must be estimated. Episodic likelihood ratio algorithms estimate it from the total return at the end of the episode, assigning to each visited state-action pair a value in retrospective. The REINFORCE gradient estimator \cite{Williams1992} uses the total return directly:
-\[
-	\hat{\nabla}_{\vtheta}J_{\mu}^{RF}(\vtheta) = 
-		\left\langle
-		\sum\limits_{k=1}^H\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)
-		\left(\sum\limits_{l=1}^H\gamma^{l-1}r_l^n-b\right)\right\rangle_N.
-\]
-A problem of the REINFORCE algorithm is the high variance of the gradient estimate, which can be reduced by using a proper baseline. A variance-minimizing baseline can be found in \cite{Peters2008reinf}:
-\begin{align*}
-	b &= \frac{\left\langle\left(\sum\limits_{k=1}^H\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)\right)^2
-		\sum\limits_{l=1}^H\gamma^{l-1}r_l^n\right\rangle_N}
-		{\left\langle\left(\sum\limits_{k=1}^H\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)\right)^2
-		\right\rangle_N}.
-\end{align*}
-Note that, in the case $|\vtheta|>1$, all operations among vectors are to be intended per-component or, equivalently, each gradient component $\gradApp{\vtheta_i}$ must be computed separately.
-
-\subsection{The PGT/G(PO)MDP algorithm}
-A problem of the REINFORCE gradient estimator is that the value estimate for $(s_k^n,a_k^n)$ depends on past rewards. Two refinements are the PGT gradient estimator \cite{Sutton2000policy}:
-\[
-	\gradPGT{\vtheta} = 
-		\left\langle
-		\sum\limits_{k=1}^H\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)
-		\left(\sum\limits_{l=k}^H\gamma^{l-1}r_l^n-b\right)\right\rangle_N,
-\]
-and the G(PO)MDP gradient estimator \cite{Baxter2001infinite}:
-\[
-	\gradGPOMDP{\vtheta} = 
-			\left\langle
-			\sum\limits_{l=1}^H\left(\sum\limits_{k=1}^l
-			\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)\right)
-			(\gamma^{l-1}r_l^n-b)\right\rangle_N.
-\]
-Although the algorithms are different, the gradient estimator that is computed is exactly the same, i.e.\ $\gradPGT{\vtheta} = \gradGPOMDP{\vtheta}$, as shown in \cite{Peters2008reinf}. From now on we will refer to the PGT form.
-In the case $b=0$, the PGT gradient estimation has been proven to suffer from less variance than REINFORCE \cite{Zhao2011a} under mild assumptions. A variance-minimizing baseline for PGT is provided in \cite{Peters2008reinf}. Differently from the REINFORCE case, a separate baseline $b_l$ is used for each time step $l$:
-\begin{align*}
-	b_l &= \frac{\left\langle\left(\sum\limits_{k=1}^l\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)\right)^2
-		\gamma^{l-1}r_l^n\right\rangle_N}
-		{\left\langle\left(\sum\limits_{k=1}^l\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)\right)^2
-		\right\rangle_N} \\\\
-	\gradPGT{\vtheta} &= 
-		\left\langle
-		\sum\limits_{k=1}^H\nabla_{\vtheta}\log\pi_{\vtheta}(a_k^n \mid s_k^n)			\left(\sum\limits_{l=k}^H\gamma^{l-1}r_l^n-b_l\right)\right\rangle_N	
-\end{align*}
-
-
-\subsection{Natural gradients}
-The algorithms described so far use the so-called vanilla policy gradient, i.e.\ an unbiased estimate of the true gradient w.r.t.\ policy parameters.
-Since such algorithms perform a search in parameter space $\Theta$, the performance is strongly depends on the policy parametrization.
-Natural policy gradients allow to search directly in policy space, independently on the parametrization. The natural policy gradient update rule is \cite{Kakade:2001}:
-\[
-	\vtheta \gets \vtheta + F_{\vtheta}\gradJ{\vtheta},
-\]
-where $F_{\vtheta}$ is the Fisher information matrix:
-\begin{align*}
-	F_{\vtheta} &= \int_{\mathcal{S}}d_{\mu}^{\pi}(s)
-			\int_{\mathcal{A}}\pi_{\vtheta}(a \mid s)\score
-			\score^T\mathrm{d}a\mathrm{d}s \\
-			&\simeq \langle\score\score^T\rangle_H.
-\end{align*}
-The parameter update is in the direction of a rotated policy gradient. Since the angular difference is never more than $\nicefrac{\pi}{2}$ \cite{Amari1998natural}, convergence to a local optimum is still guaranteed. 
-Although a good policy parametrization can yield better performance for specific problems, natural policy gradients offer a more general approach and have shown effective in practice \cite{Peters2008natural}.
-
-\subsection{Actor-critic methods}
-Actor-critic methods try to combine policy search and value function estimation to perform low-variance gradient updates. The "actor" is a parametrized policy $\pi_{\vtheta}$, which can be updated as in vanilla policy gradient algorithms. For this reason, the policy gradient methods described so far are also called critic-only. The "critic" is an estimate of the action-value function $\hat{Q}_{\boldsymbol{w}}$, where $\boldsymbol{w}$ is a parameter vector. The approximate value-function methods briefly mentioned in Section \ref{sec:why_pg} can be thought as critic-only. The \ac{RL} literature provides a great number of methods to learn a value function estimate from experience \cite{Sutton:1998:IRL:551283}. We provide an example of episodic value-function parameter update:
-\[
-	\boldsymbol{w} \gets \boldsymbol{w} + \beta\langle
-		(R_t-\hat{Q}_{\boldsymbol{w}}(s_t,a_t))
-		\nabla_{\boldsymbol{w}}\hat{Q}_{\boldsymbol{w}}(s_t,a_t)\rangle_H,
-\] 
-where $R_t = \sum\limits_{k=0}^{\infty}\gamma^kr_{t+k}$ and $\beta$ is just a learning rate.
-Actor and critic meet when $\hat{Q}_{\boldsymbol{w}}$ is used to compute the policy gradient used to update $\vtheta$:
-\begin{equation}\label{eq:ac_update} 
-	\vtheta \gets \vtheta + \langle\score \hat{Q}_{\boldsymbol{w}}(s,a)\rangle_H.
+Instead, Kakade and Langford proposed to update $\pi$ with a convex combination of the greedy and the current policy:
+\begin{equation} \label{eq:cpi}
+	\pi_{new}(a \mid s) = (1-\alpha)\pi(a \mid s) + \alpha\pi'(a \mid s),
 \end{equation}
-This approach exploits the predictive power of approximate value functions while preserving the nice theoretical properties of the policy gradient. Under some assumption on the critic function (see Theorem 2 in \cite{Sutton1999a}), the Policy Gradient Theorem is still valid when $\hat{Q}_{\boldsymbol{w}}$ is used in place of the true value function $Q^\pi$:
+with step size $\alpha \in [0,1]$. When a step size $\alpha<1$ is used, this is more conservative than a pure greedy improvement, producing a new policy that is more similar to the original one. 
+The authors were able to compute a lower bound on the performance improvement:
 \[
-	\gradJ{\vtheta} = \int_{\mathcal{S}}d_{\mu}^{\pi}(s)
-		\int_{\mathcal{A}}\pi_{\vtheta}(a \mid s)\score
-		\hat{Q}_{\boldsymbol{w}}(s,a)\mathrm{d}a\mathrm{d}s.
+	J_\mu(\pi_{new}) - J_\mu(\pi) \geq \frac{\alpha}{1-\gamma}\left(\mathbb{A}_{\pi,\mu}(\pi')
+		- \frac{2\alpha\gamma\epsilon}{1-\gamma(1-\alpha)}\right),
 \]
-This means that parameter update (\ref{eq:ac_update}) is still in the direction of the policy gradient, guaranteeing convergence to a local optimum.
-For a recent survey of actor-critic methods refer to \cite{grondman2012survey}, which reports also examples of the usage of natural gradients in combination with the actor-critic approach.
+where $\epsilon = \max\limits_{s \in \mathcal{S}}|\expected{a}{\pi'}{A^\pi(s,a)}|$. While the positive term obviously depends on the advantage of the greedy policy, the negative one must be intended as a penalty for large policy updates. By maximizing this bound w.r.t.\ $\alpha$, a step size is obtained that guarantees positive performance improvement as long as the advantage is positive, without totally sacrificing the speed of convergence:
+\begin{align}
+&\alpha^* = \frac{(1-\gamma)\mathbb{A}_{\pi,\mu}(\pi')}{4R} \\
+& J_\mu(\pi_{new}) - J_\mu(\pi) \geq \frac{\mathbb{A}^2_{\pi,\mu}(\pi')}{8R}
+\end{align}
+When the true advantage cannot be computed and an estimate must be used, monotonic improvement can still be guaranteed with high probability. The resulting algorithm is called \ac{CPI}.
+This methodology inspired the development of several later safe methods.
 
-\section{Safe policy gradient methods}
-In this section we present the state of the art on monotonically improving policy gradient methods, which are also known as conservative or safe approaches. In the following we will refer to them as safe policy gradient methods.
+\subsection{Unique and Multiple-Parameter Safe Policy Improvement}
+Pirotta et al. \cite{pirotta2013safe} derived a more general bound on the performance improvement of a policy $\pi'$ over $\pi$:
+\begin{equation}\label{eq:uspi_bound}
+J_\mu(\pi_{new}) - J_\mu(\pi) \geq \mathbb{A}_{\pi,\mu}(\pi') - \frac{\gamma}{(1-\gamma)^2}
+	\norm[\infty]{\pi'-\pi}^2 \frac{\norm[\infty]{Q^\pi}}{2},
+\end{equation}
+where the penalty induced by large policy updates is made more evident by the term $\norm[\infty]{\pi'-\pi}^2$. Starting from this bound, a new algorithm called \ac{USPI} was developed. \ac{USPI} uses the same update as \ac{CPI} (\ref{eq:cpi}), but with a step size based on a better improvement bound, derived from \ref{eq:uspi_bound}. This results in better guaranteed performance improvements.
+In the same paper, the authors also propose a more general, state dependent policy update:
+\[
+	\pi_{new}(a \mid s) = (1-\alpha(s))\pi(a \mid s) + \alpha(s)\pi'(a \mid s). 
+\]
+Using state-dependent step-sizes, it is possible to limit the update to the states in which the average advantage $\expected{a}{\pi'}{A^\pi(s,a)}$ is positive, by setting $\alpha(s) = 0$ for all other states. This is the idea behind \ac{MSPI}. Although more general, this algorithm is not guaranteed to provide better performance improvements than \ac{USPI}, although it is never worse than \ac{CPI}. Moreover, the computation of the optimal step-sizes for 'good' states can only be done iteratively, limiting efficiency.
 
-\subsection{The need for safe policy gradients}
+\subsection{Linearized Policy Improvement}
+Bartlett et al. \cite{abbasi2016fast} propose a different policy update employing state-dependent mixture coefficients, which in this case can be computed efficiently.
+The policy update is:
+\[
+	\pi_{new}(a \mid s) = \nu(a \mid s)(1+\alpha\Delta_{\pi}(s,a)),
+\]
+where:
+\begin{itemize}
+\item $\nu(\cdot \mid s)$ is a policy such that:
+\begin{equation}\label{eq:same_value}
+\expected{a}{\pi}{\hat{Q}^{\pi}(s \mid a)} = \expected{a}{\nu}{\hat{Q}^{\pi}(s \mid a)} + 
+	\mathop{\mathbf{Var}}\limits_{a \sim \nu}\left[\hat{Q}^{\pi}(s \mid a)\right],
+\end{equation}
+which can be computed for each visited state with a binary search.
+\item $\Delta_\pi(s,a)$ is a normalized action-value function:
+\begin{equation}\label{eq:normalized_q}
+	\Delta_\pi(s,a) = \hat{Q}^\pi(s,a) - \expected{a}{\nu}{\hat{Q}^\pi(s,a)},
+\end{equation}
+\item $\alpha$ is a step size.
+\end{itemize}
+The idea is the following: the original policy $\pi$ is reshaped into:
+\[
+	\overline{\pi}(a \mid s) = \nu(a \mid s)(1+\Delta_{\pi}(s,a)),
+\]
+which has the same value function (in the absence of estimation error), i.e.\ $V^{\overline{\pi}} = V^\pi$. The negative term in Equation \ref{eq:normalized_q} ensures that $\overline{\pi}$ is a well defined distribution. Introducing a step size $\alpha$ allows to assign higher probability to actions with positive normalized value function $\Delta_\pi$. A conservative choice for $\alpha$ is $\nicefrac{1}{\norm[\infty]{\Delta_\pi}}$, but the authors also propose more practical alternatives.
+The resulting algorithm is called \ac{LPI}. The authors show that the performance improvement guarantee of \ac{LPI} is better than the one of \ac{CPI}, at the same time allowing for bigger policy updates, hence faster convergence.
+
+\section{Safe Policy Gradient}
+\subsection{The role of the step size}
+Most of the safe policy gradient methods that have been proposed so far focus on the selection of the proper step size $\alpha$.
+The step size regulates the magnitude of the parameter updates. Although the relationship between $\Delta\vtheta$ and the actual change in the policy is parametrization-dependent (at least for vanilla policy gradients) and may be non-trivial, in general small step sizes produce small changes in the policy, hence small performance oscillations. However, reducing the step-size also reduces the convergence speed, which is a major drawback in most applications. 
+The traditional solution is to employ line search to select the optimal step size for each problem. Although effective in supervised learning \cite{More:1994:LSA:192115.192132}, this approach can be prohibitively expensive in \ac{RL}. 
+An alternative is to make the step size adaptive, i.e.\ to compute it at each learning iteration from collected data.
+
+\subsection{Adaptive step-size}
+Pirotta et al. \cite{NIPS2013_5186} apply the approach of Kakade and Langford \cite{kakade2002approximately} to policy gradient. Starting from a continuous version of Bound \ref{eq:uspi_bound}, they derive a series of bounds on performance improvement which can be maximized w.r.t.\ the step size $\alpha$. We report here a bound for Gaussian policies which does not require to compute the action-value function:
+\begin{multline}\label{eq:pirotta_bound2}
+J_{\mu}(\vtheta')-J_{\mu}(\vtheta) \geq \alpha\norm[2]{\gradJ{\vtheta}}^2 - \\
+	\alpha^2\frac{RM_\phi^2\norm[1]{\gradJ{\vtheta}}^2}{(1-\gamma)^2\sigma^2}
+	\left(\frac{|\mathcal{A}|}{\sqrt{2\pi}\sigma} + \frac{\gamma}{2(1-\gamma)}\right),
+\end{multline}
+where $M_\phi$ is a bound on state features $\phi(s)$.
+At each learning iteration, given $\gradJ{\vtheta}$, the step size that optimizes this bound can be computed:
+\[
+\alpha^* = \frac{\norm[2]{\gradJ{\vtheta}}^2(1-\gamma)^3\sigma^3\sqrt{2\pi}}
+	{RM_\phi^2\norm[1]{\gradJ{\vtheta}}^2(2|\mathcal{A}|(1-\gamma)+\sqrt{2\pi}\sigma\gamma)}
+\] 
+Updating the policy parameters with $\alpha^*$ guarantees a constant performance improvement:
+\[
+J_{\mu}(\vtheta')-J_{\mu}(\vtheta) \geq
+	\frac{\norm[2]{\gradJ{\vtheta}}^4(1-\gamma)^3\sigma^3\sqrt{2\pi}}
+	{2RM_\phi^2\norm[1]{\gradJ{\vtheta}}^2(2|\mathcal{A}|(1-\gamma)+\sqrt{2\pi}\sigma\gamma)}
+\]
+When the policy gradient cannot be computed exactly, monotonicity can be guaranteed with high probability, depending on the entity of the estimation error. The authors provide methods, based on Chebyshev's inequality, to select the number of samples necessary to achieve a desired improvement probability $\delta$, for the cases of REINFORCE and PGT gradient estimators.
+\paragraph{} % Lipschitz
+The same authors \cite{pirotta2015policy} follow a similar approach to derive tighter bounds for the case of Lipschitz-continuous \ac{MDP}s. A Lipschitz \ac{MDP} is a \ac{MDP} with Lipschitz-continuous transition model $\mathcal{P}$ and reward function $\mathcal{R}$. We omit the mathematical details, but intuitively the Lipschitz hypothesis is reasonable when the dynamics of the environment are sufficiently smooth. Starting from this hypothesis, and constraining the policy to be Lipschitz-continuous as well, the authors are able to prove the Lipschitz continuity of the policy gradient $\gradJ{\vtheta}$ and provide an efficient algorithm to compute an optimal step size based on this fact.
+ 
+\subsection{Beyond the step size}
+Although the step size is crucial in controlling policy oscillation, we saw that also the entity of the estimation error plays a role. In likelihood ratio methods, the variance of the policy gradient estimate $\gradApp{\vtheta}$ can be limited by averaging over a large number of trajectories. In this case, the batch size $N$ can affect policy improvement. In \cite{NIPS2013_5186} the effect of $N$ is recognized but not exploited: it is still a meta-parameter that must be selected beforehand by a human expert. As in the case of the step size, line search algorithm are usually too expensive given the time that is typically required to collect a sample trajectory. For the same reason, an adaptive batch size should take into consideration the cost of collecting more samples, which cannot be neglected in practical applications. In the following chapter we address this problems to derive a cost-sensitive adaptive batch size that guarantees monotonic improvement.
 
 
-\subsection{The step-size problem}
-Most of the safe policy gradient methods that have been proposed focus on the selection of the proper step size $\alpha$.
-The step size regulates the magnitude of the parameter updates. Although the relationship between $\Delta\vtheta$ and the actual change in the policy is parametrization-dependent (at least for vanilla policy gradients) and may be non-trivial, in general small step sizes produce small changes in the policy, hence small performance oscillations. However, reducing the step-size also reduces the convergence speed, which is a major drawback in most applications. To face this trade-off, the step size can be made adaptive, e.g.\ by making it a function of the policy gradient. Many of the methods described in the remaining part of this section follow this approach, which is also the starting point of our main contribution.
 
-\subsection{State of the art}
-\subsection{What to do next}
+\section{Other Safe Methods}
+In this section we describe other safe approaches to reinforcement learning.
+
+\subsection{Trust Region Policy Optimization}
+A problem with the methods proposed so far is that they tend to be over conservative, negatively affecting convergence speed. Schulman et al. \cite{schulman2015trust} revisit the \ac{CPI} approach to develop an effective, although strongly heuristic, safe direct policy search algorithm. Given a parametrized policy $\pi_{\vtheta}$, said $\vtheta$ the current parameter and $\vtheta'$ a generic updated parameter, the following is shown to hold (adapted to our notation):
+\[
+	J_\mu(\vtheta) \geq L_{\vtheta}(\vtheta') -\alpha H_{max}(\vtheta,\vtheta'),
+\]
+where $L_{\vtheta}(\vtheta') = J_\mu(\vtheta) + \mathop{\mathbf{E}}\limits_{s \sim d_{\mu}^{\pi_{\vtheta}} , a \sim \pi_{\vtheta'}}\left[A_{\pi_{\vtheta}}(s,a)\right]$ is a first order approximation of the performance improvement, $\alpha=\frac{2\max_{s \in \mathcal{S}}{\expected{a}{\pi_{\vtheta'}}{A^{\pi}(s,a)}}}{(1-\gamma)^2}$ is a penalty coefficient and $H_{max}(\vtheta,\vtheta')=\max_{s \in \mathcal{S}}{H(\pi_{\vtheta},\pi{\vtheta})}$, where $H(\cdot,\cdot)$ is the Kullback-Liebler divergence between two distributions.
+The traditional approach would be to maximize the bound:
+\[
+	\vtheta' = \arg\max\limits_{\tilde{\vtheta} \in \Theta}{L_{\vtheta}(\tilde{\vtheta}) -\alpha H_{max}(\vtheta,\tilde{\vtheta})},
+\]
+but the theoretically justified penalty coefficient $\alpha$ leads to updates that are too conservative. Instead, the authors propose to resolve to the following constrained optimization problem:
+\begin{align}
+\vtheta' = &\arg\max\limits_{\tilde{\vtheta} \in \Theta}{L_{\vtheta}(\tilde{\vtheta})} \\
+	&\text{subject to } H_{max}(\vtheta,\tilde{\vtheta}) \leq \delta. \label{eq:tr_constraint}
+\end{align}
+Constraint \ref{eq:tr_constraint} is called trust region constraint and its intuitive role is to limit the update to a neighborhood of the current parameter $\vtheta$ to avoid oscillation. A series of approximations to this exact method lead to the \ac{TRPO} algorithm, which shows to be effective on complex tasks.
+
+\subsection{Thomas}
+\subsection{Petrik}
