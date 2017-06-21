@@ -147,5 +147,14 @@ but the theoretically justified penalty coefficient $\alpha$ leads to updates th
 \end{align}
 Constraint \ref{eq:tr_constraint} is called trust region constraint and its intuitive role is to limit the update to a neighborhood of the current parameter $\vtheta$ to avoid oscillation. A series of approximations to this exact method lead to the \ac{TRPO} algorithm, which shows to be effective on complex tasks.
 
-\subsection{Thomas}
-\subsection{Petrik}
+\subsection{High Confidence Policy Improvement}
+The methods seen so far try to achieve monotonic improvement. Thomas et al. \cite{thomas2015high} adopt a looser definition of safety: an algorithm is safe if it always returns a policy with performance below $J_{\mu}^-$ with probability at most $\delta$, where both $J_{\mu}^-$ and $\delta$ are selected by the user. In this way, different applications allow for different safety requirements, depending on risk aversion. The authors propose a batch \ac{RL} algorithm: the set of sample trajectories is partitioned into a training set and a test set. The training set is searched for the policy that is predicted to achieve the best performance among all the policies that are predicted to be safe. The safety of the candidate policy is then tested on the test set. The authors also describe an episodic variant of this algorithm, called DAEDALUS. If compared with other safe approaches, these algorithms require less data and have no meta-parameters requiring expert tuning, but have a higher computational complexity and do not guarantee monotonic improvement. 
+
+\subsection{Robust Baseline Regret Minimization}
+Petrik et al. \cite{petrik2016safe} propose a model-based batch algorithm that guarantees improvement over a baseline policy $\pi$.
+Given a model of the environment $\hat{P}$ and estimation error $e$, uncertainty set $\Xi(\hat{P},e)$ is the set of transition dynamics within $e$.  The new policy is selected by solving the following adversarial optimization problem:
+\begin{equation}\label{eq:petrik}
+\pi' \in \arg\max\limits_{\tilde{\pi}}\min_{\xi \in \Xi}
+	\left(J_{\mu}(\tilde{\pi}\mid \xi)- J_{\mu}(\pi\mid \xi)\right), 
+\end{equation}
+which selects the best policy given the worst possible dynamics. Solutions to this problem are guaranteed to be safe. Unfortunately, solving \ref{eq:petrik} is NP-hard. The authors provide an approximate algorithm (Approximate Robust Baseline Regret Minimization) with promising results.
