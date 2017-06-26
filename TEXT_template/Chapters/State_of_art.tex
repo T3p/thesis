@@ -24,7 +24,7 @@ From all these problems comes the necessity of policy updates that are monotonic
 In policy iteration, policy oscillation can arise each time approximation is used either in the evaluation step or in the improvement step.
 In this section we present the main safe approaches approximate to policy iteration, starting from the seminal work by Kakade and Langford \cite{kakade2002approximately}.
 
-\subsection{Conservative Policy Iteration}
+\subsection{Conservative Policy Iteration}\label{sec:CPI}
 In \cite{kakade2002approximately}, Kakade and Langford address the policy oscillation problem by limiting the magnitude of the policy updates.
 Let $\pi$ be the current policy and $\pi'$ a greedy policy w.r.t.\ the latest action-value estimate, i.e. :
 \[
@@ -99,7 +99,7 @@ The step size regulates the magnitude of the parameter updates. Although the rel
 The traditional solution is to employ line search to select the optimal step size for each problem. Although effective in supervised learning \cite{More:1994:LSA:192115.192132}, this approach can be prohibitively expensive in \ac{RL}. 
 An alternative is to make the step size adaptive, i.e.\ to compute it at each learning iteration from collected data.
 
-\subsection{Adaptive step-size}
+\subsection{Adaptive step-size}\label{sec:adaptive_ss}
 Pirotta et al. \cite{NIPS2013_5186} apply the approach of Kakade and Langford \cite{kakade2002approximately} to policy gradient. Starting from a continuous version of Bound \ref{eq:uspi_bound}, they derive a series of bounds on performance improvement which can be maximized w.r.t.\ the step size $\alpha$. We report here a bound for Gaussian policies which does not require to compute the action-value function:
 \begin{multline}\label{eq:pirotta_bound2}
 J_{\mu}(\vtheta')-J_{\mu}(\vtheta) \geq \alpha\norm[2]{\gradJ{\vtheta}}^2 - \\
@@ -122,7 +122,7 @@ When the policy gradient cannot be computed exactly, monotonicity can be guarant
 \paragraph{} % Lipschitz
 The same authors \cite{pirotta2015policy} follow a similar approach to derive tighter bounds for the case of Lipschitz-continuous \ac{MDP}s. A Lipschitz \ac{MDP} is a \ac{MDP} with Lipschitz-continuous transition model $\mathcal{P}$ and reward function $\mathcal{R}$. We omit the mathematical details, but intuitively the Lipschitz hypothesis is reasonable when the dynamics of the environment are sufficiently smooth. Starting from this hypothesis, and constraining the policy to be Lipschitz-continuous as well, the authors are able to prove the Lipschitz continuity of the policy gradient $\gradJ{\vtheta}$ and provide an efficient algorithm to compute an optimal step size based on this fact.
  
-\subsection{Beyond the step size}
+\subsection{Beyond the step size}\label{sec:beyond}
 Although the step size is crucial in controlling policy oscillation, we saw that also the entity of the estimation error plays a role. In likelihood ratio methods, the variance of the policy gradient estimate $\gradApp{\vtheta}$ can be limited by averaging over a large number of trajectories. In this case, the batch size $N$ can affect policy improvement. In \cite{NIPS2013_5186} the effect of $N$ is recognized but not exploited: it is still a meta-parameter that must be selected beforehand by a human expert. As in the case of the step size, line search algorithm are usually too expensive given the time that is typically required to collect a sample trajectory. For the same reason, an adaptive batch size should take into consideration the cost of collecting more samples, which cannot be neglected in practical applications. In the following chapter we address this problems to derive a cost-sensitive adaptive batch size that guarantees monotonic improvement.
 
 

@@ -227,7 +227,7 @@ Among the oldest policy gradient methods we find finite-difference methods, whic
 \]
 where $\boldsymbol{\Delta\Theta}^T = [\Delta\vtheta_1,\dots,\Delta\vtheta_K]^T$ and $\boldsymbol{\Delta\hat{J}} = [\Delta\hat{J}_1,\dots,\Delta\hat{J}_K]^T$. This method is easy to implement and very efficient when applied to deterministic tasks or pseudo-random number simulations. In real control tasks though, perturbing the policy parametrization without incurring in instability may not be trivial and noise can have a disastrous impact on performance. Moreover, this kind of gradient estimation requires a large number of trajectories.
 
-\subsection{Likelihood Ratio}
+\subsection{Likelihood Ratio}\label{sec:likelihood_ratio}
 The likelihood ratio approach allows to estimate the gradient even from a single trajectory, without the need of perturbing the parametrization. This method is due to Williams \cite{Williams1992}, but is better understood from the perspective of the later Policy Gradient Theorem \cite{Sutton1999a}.
 By applying trivial differentiation rules to the expression of the policy gradient (see Theorem \ref{theo:pgt}), we have:
 \[

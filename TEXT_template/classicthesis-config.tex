@@ -88,6 +88,10 @@
 \newcommand{\score}{\nabla_{\vtheta}\log\pi_{\vtheta}(a \mid s)}
 \newcommand{\expected}[3]{\mathop{\mathbf{E}}_{#1\sim{#2}}\left[#3\right]}
 
+\DeclareRobustCommand{\eg}{e.g.,\@\xspace}
+\DeclareRobustCommand{\ie}{i.e.,\@\xspace}
+\DeclareRobustCommand{\wrt}{w.r.t.\@\xspace}
+
 % ********************************************************************
 % Setup, fine tuning, and useful commands
 % ********************************************************************
@@ -95,10 +99,6 @@
 \newlength{\abcd} % for ab..z string length calculation
 \providecommand{\mLyX}{L\kern-.1667em\lower.25em\hbox{Y}\kern-.125emX\@}
 % from here till the end of the section, you can modify whatever you want
-\newcommand{\ie}{i.\,e.\ }
-\newcommand{\Ie}{I.\,e.\ }
-\newcommand{\eg}{e.\,g.\ }
-\newcommand{\Eg}{E.\,g.\ }
 % referencing commands
 \newcommand{\myEq}[1]{equation \eqref{#1}}
 \newcommand{\MyEq}[1]{Equation \eqref{#1}}
@@ -161,12 +161,17 @@
 
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[chapter]
-\newtheorem{theorem}{Theorem}[chapter]
+%\newtheorem{theorem}{Theorem}[chapter]
 
 \theoremstyle{plain}
 \newtheorem{observation}[definition]{Observation}
-\newtheorem{corollary}[theorem]{Corollary}
-\newtheorem{lemma}[theorem]{Lemma}
+%\newtheorem{corollary}[theorem]{Corollary}
+%\newtheorem{lemma}[theorem]{Lemma}
+\usepackage{thmtools, thm-restate}
+\declaretheorem[numberwithin=section]{theorem}
+\declaretheorem[sibling=theorem]{lemma}
+\declaretheorem[sibling=theorem]{corollary}
+\declaretheorem[sibling=theorem]{assumption}
 % **********************************************************************
 
 

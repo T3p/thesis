@@ -1,0 +1,187 @@
+\chapter{Proofs}\label{app:proofs}
+In this appendix we provide the proofs that were omitted. Some auxiliary lemmas are also introduced and proved.
+
+\begin{lemma}\label{aux:1}
+For any initial state distribution $\mu$ and any pair of stationary Gaussian policies $\pi_{\vtheta} \sim \mathcal{N}(\vtheta^T\boldsymbol{\phi}(s),\sigma^2)$ and $\pi_{\vtheta'} \sim \mathcal{N}(\vtheta'^T\boldsymbol{\phi}(s),\sigma^2)$, so that $\vtheta'=\vtheta+\Lambda\gradJ{\vtheta}$, and for any state $s$ and action $a$
+\[
+\pi(a|s,\vtheta') - \pi(a|s,\vtheta) \geq \nabla_{\vtheta}\pi(a|s,\vtheta)^T\Lambda\gradJ{\vtheta} 
+	- \frac{M_{\phi}^2\norm[1]{\Lambda\gradJ{\vtheta}}^2}{\sqrt{2\pi}\sigma^3}
+\]
+\end{lemma}
+
+\begin{proof}
+By exploiting Taylor's expansion
+\begin{align*}
+\pi(a|s,\vtheta') = & \pi(a|s,\vtheta + \Lambda\gradJ{\vtheta}) = \\
+	& \pi(a|s,\vtheta) + \nabla_{\vtheta}\pi(a|s,\vtheta)^T\Delta\vtheta+R_1(\Delta\vtheta),
+\end{align*}
+where $R_1(\Delta\vtheta)$ is the remainder of the series which can be bounded as follows by exploiting Lemma 4.1 from \cite{NIPS2013_5186} and Assumption 3.1:
+\begin{align*}
+R_1(\Delta\vtheta) = & \sum\limits_{i=1}^m\sum\limits_{j=1}^m
+\frac{\partial^2\pi(a|s,\vtheta)}{\partial\theta_i\partial\theta_j} \bigg|_{\vtheta+c\Delta\vtheta} \frac{\Delta\theta_i\Delta\theta_j}{1+I(i=j)} && \text{for some $c \in (0,1)$} \\
+	\geq & - \sum\limits_{i=1}^m\sum\limits_{j=1}^m \frac{|\phi_i(s)\phi_j(s)|}{\sqrt{2\pi}\sigma^3}
+	\frac{\Delta\theta_i\Delta\theta_j}{1+I(i=j)} \\
+	= & -\frac{1}{\sqrt{2\pi}\sigma^3}\sum\limits_{i=1}^m\sum\limits_{j=1}^m
+	\frac{\alpha_i|\phi_i(s)|\gradJ{\theta_i}\alpha_j|\phi_j(s)|\gradJ{\theta_j}}{1+I(i=j)} \\
+	= & - \frac{(|\gradJ{\vtheta}|^T\Lambda|\vphi(s)|)^2}{\sqrt{2\pi}\sigma^3} \\
+	\geq & - \frac{M_{\phi}^2\norm[1]{\Lambda\gradJ{\vtheta}}^2}{\sqrt{2\pi}\sigma^3}.
+\end{align*}
+It is now enough to apply this bound to Taylor's expansion.
+\end{proof}
+
+\begin{lemma}\label{aux:2}
+For any initial state distribution $\mu$ and any pair of stationary Gaussian policies $\pi_{\vtheta} \sim \mathcal{N}(\vtheta^T\boldsymbol{\phi}(s),\sigma^2)$ and $\pi_{\vtheta'} \sim \mathcal{N}(\vtheta'^T\boldsymbol{\phi}(s),\sigma^2)$, so that $\vtheta'=\vtheta+\Lambda\gradJ{\vtheta}$
+
+\[ \norm[\infty]{\pi_{\vtheta'}-\pi_{\vtheta}}^2 \leq \
+	\frac{M_{\phi}^2\norm[1]{\Lambda\gradJ{\vtheta}}^2}{\sigma^2}
+\]
+\end{lemma}
+
+\begin{proof}
+By exploiting Pinsker's inequality \cite{Pinsker1960}
+\begin{align*}
+\norm[\infty]{\pi_{\vtheta'}-\pi_{\vtheta}}^2 = & \sup\limits_s \norm[\infty]{\pi_{\vtheta'}-\pi_{\vtheta}}^2 \\
+	\geq & \sup\limits_s 2H(\pi_{\vtheta'}||\pi_{\vtheta}) \\
+	= & \sup\limits_s \frac{1}{\sigma^2} \sum\limits_i 
+	(\gradJ{\theta_i}\alpha_i\phi_i(s))^2 \\
+	\geq & \frac{M_{\phi}^2\norm[1]{\Lambda\gradJ{\vtheta}}^2}{\sigma^2},
+\end{align*}
+where $H(P||Q)$ is the Kullback-Liebler divergence.
+\end{proof}
+
+
+\firstlemma*
+\begin{proof}
+We plug the results of Lemmas \ref{aux:1} and \ref{aux:2} into Lemma 3.1 from \cite{NIPS2013_5186}:
+\begin{align*}
+J_{\mu}(\vtheta') - J_{\mu}(\vtheta) \geq  
+	& \frac{1}{1-\gamma} \int_{\mathcal{S}}d_{\mu}^{\pi_{\vtheta}}(s)
+	\int_{\mathcal{A}} (\pi(a|s,\vtheta') - \pi(a|s,\vtheta))Q^{\pi_{\vtheta}}(s,a)\mathrm{d}a\mathrm{d}s \\
+	& -\frac{\gamma}{2(1-\gamma)^2} \norm[\infty]{\pi_{\vtheta'}-\pi_{\vtheta}}^2 \norm[\infty]{Q^{\pi_{\vtheta}}} \\
+	\geq & 
+		\frac{1}{1-\gamma} \int_{\mathcal{S}}d_{\mu}^{\pi_{\vtheta}}(s)
+		\int_{\mathcal{A}}
+		\nabla_{\vtheta}\pi(a|s,\vtheta)^T\Lambda\gradJ{\vtheta}
+		Q^{\pi_{\vtheta}}(s,a)\mathrm{d}a\mathrm{d}s && (1) \\
+		& - \frac{M_{\phi}^2\norm[1]{\Lambda\gradJ{\vtheta}}^2}
+		{(1-\gamma)\sqrt{2\pi}\sigma^3}
+		\int_{\mathcal{S}}d_{\mu}^{\pi_{\vtheta}}(s)
+		\int_{\mathcal{A}} 
+		Q^{\pi_{\vtheta}}(s,a)\mathrm{d}a\mathrm{d}s && (2) \\ 
+		&  -\frac{\gamma M_{\phi}^2\norm[1]{\Lambda\gradJ{\vtheta}}^2}
+		{2(1-\gamma)^2\sigma^2}\norm[\infty]{Q^{\pi_{\vtheta}}}	&& (3)
+\end{align*}
+Term $(1)$ can be simplified by using the Policy Gradient Theorem \cite{NIPS1999_1713}:
+\begin{align*}
+\frac{1}{1-\gamma} &  \int_{\mathcal{S}}d_{\mu}^{\pi_{\vtheta}}(s)
+		\int_{\mathcal{A}}
+		\nabla_{\vtheta}\pi(a|s,\vtheta)^T\Lambda\gradJ{\vtheta}
+		Q^{\pi_{\vtheta}}(s,a)\mathrm{d}a\mathrm{d}s \\
+		= & \frac{\gradJ{\vtheta}^T\Lambda}{1-\gamma}
+		\int_{\mathcal{S}}d_{\mu}^{\pi_{\vtheta}}(s)
+		\int_{\mathcal{A}}
+		\nabla_{\vtheta}\pi(a|s,\vtheta)Q^{\pi_{\vtheta}}(s,a)\mathrm{d}a\mathrm{d}s \\
+		= & \gradJ{\vtheta}^T\Lambda\gradJ{\vtheta}
+\end{align*}
+The proof now follows simply by rearranging terms.
+\end{proof}
+
+
+% \paragraph{Theorem \ref{theo:1}}
+\firsttheorem*
+\begin{proof}
+For every state $s \in \mathcal{S}$ and every action $a \in \mathcal{A}$, the Q-function belongs to $\left[-\frac{R}{1-\gamma},\frac{R}{1-\gamma}\right]$. As a consequence, $\int_{\mathcal{A}}Q^{\pi_{\vtheta}}(s,a)\mathrm{d}a \leq \frac{|\mathcal{A}|R}{1-\gamma}$ and $\norm[\infty]{Q^{\pi_{\vtheta}}} \leq \frac{R}{1-\gamma}$. The proof follows from applying these bounds to the expression of Lemma \ref{lemma:1}.
+\end{proof}
+
+% \paragraph{Theorem \ref{theo:3}}
+\thirdtheorem*
+\begin{proof}
+The proof immediately follows from Theorem 3.3 and the definition of $\gradDown{\vtheta}$ and $\gradUp{\vtheta}$. Note that the saturation to $0$ in $\gradDown{\vtheta}$ is necessary since $\gradJ{\vtheta}$ is taken with absolute value in the negative term of the original bound.
+\end{proof}
+
+\paragraph{Theorem \ref{theo:5}}
+% {\fourththeorem*}
+\begin{proof}
+We first optimize the cost function $\Upsilon_{\delta}$ w.r.t $\Lambda$. Since $\Upsilon_{\delta}$ is just the bound from Theorem \ref{theo:3} divided by $N$, we can use the result from Corollary \ref{cor:3}, which under Assumption \ref{assum:4} can be expressed as:
+\[
+\alpha_k^* = 
+\begin{cases}
+	\frac{
+		\left(\norm[\infty]{\gradApp{\vtheta}} - \nicefrac{d_{\delta}}{\sqrt{N}}\right)^2}
+		{2c
+		\left(\norm[\infty]{\gradApp{\vtheta}} + \nicefrac{d_{\delta}}{\sqrt{N}}\right)^2} & 
+		\text{if } k = \arg\max_i |\gradApp{\theta_i}|,	\\
+		0 & \text{otherwise},
+\end{cases}
+\]
+which yields:
+\[
+	\Upsilon_{\delta}(\Lambda^*,N) = 
+	\frac{
+		\left(\norm[\infty]{\gradApp{\vtheta}} - \nicefrac{d_{\delta}}{\sqrt{N}}\right)^4}
+		{4c
+		\left(\norm[\infty]{\gradApp{\vtheta}} + \nicefrac{d_{\delta}}{\sqrt{N}}\right)^2N}.
+\]
+To justify the use of Corollary \ref{cor:3}, our $N^*$ must be compliant with \ref{assum:3}, which, under Assumption \ref{assum:4}, translates into the following constraint:
+\[
+N \geq N_0 := \frac{d_{\delta}^2}{\norm[\infty]{\gradApp{\vtheta}}^2}.
+\] 
+By computing the derivative $\nicefrac{\partial\Upsilon_{\delta}}{\partial N}$ we find just two stationary points in $[N_0,+\infty)$: the first one is $N_0$ itself, which is a minimum ($\Upsilon_{\delta}(\Lambda^*,N_0) = 0$ and $\Upsilon_{\delta}$ is non-negative); the other one is our optimal batch size:
+\[
+	N^* =  \frac{(13+3\sqrt{17})d_{\delta}^2}{2\norm[\infty]{\gradApp{\vtheta}}^2}.
+\]
+Since $\Upsilon_{\delta}(\Lambda^*,N_1)=0, \lim\limits_{N \to +\infty}\Upsilon_{\delta} (\Lambda^*,N)= 0$, and $\Upsilon_{\delta}$ is continuous and differentiable in $[N_0,+\infty)$, $N^*$ is indeed the global maximum in the region of interest. We can now substitute $N^*$ into $\Lambda^*$ to obtain:
+\begin{align*}
+&\alpha_k^* = 
+\begin{cases}  
+	\frac{(13-3\sqrt{17})}
+		{4c} & 
+		\text{if } k = \arg\max\limits_i |\gradApp{\theta_i}|,	\\
+		0 & \text{otherwise},
+\end{cases}
+\end{align*}
+and into $\Upsilon_{\delta}(\Lambda^*,N^*)$ to obtain:
+\[
+	\Upsilon^* = \frac{(4977-1207\sqrt{17})\norm[\infty]{\gradApp{\vtheta}}^4}{32d_{\delta}^2}.
+\]
+Finally
+\[
+	\DeltaJ \geq N^*\Upsilon^* 
+	= \frac{393-95\sqrt{17}}{8}\norm[\infty]{\gradApp{\vtheta}}^2
+\]
+
+with probability at least $(1-\delta)^m$.
+
+\end{proof}
+
+
+% \paragraph{Lemma \ref{lemma:2}}
+\secondlemma*
+\begin{proof}
+We focus on the REINFORCE\cite{Williams1992} gradient estimator:
+\[
+\hat{\nabla}_{\vtheta}J_{\mu}^{RF}(\vtheta) = 
+	\frac{1}{N}\sum\limits_{n=1}^N\left(
+	\sum\limits_{k=1}^H\nabla_{\vtheta}\log\pi(a_k^n|s_k^n,\vtheta)
+	\left(\sum\limits_{l=1}^H\gamma^{l-1}r_l^n-b\right)\right),
+\]
+and the G(PO)MDP\cite{bb-ihgbps-01}/PGT\cite{Sutton1999a} gradient estimator:
+\[
+\gradPGT{\vtheta} = \gradGPOMDP{\vtheta} = 
+	\frac{1}{N}\sum\limits_{n=1}^N\left(
+	\sum\limits_{k=1}^H\nabla_{\vtheta}\log\pi(a_k^n|s_k^n,\vtheta)
+	\left(\sum\limits_{l=k}^H\gamma^{l-1}r_l^n-b_l^n\right)\right).
+\]
+In both cases, the i-th component of the single sample can be bounded in absolute value as
+\[
+\sum\limits_{k=1}^H\nabla_{\theta_i}|\log\pi(a_k^n|s_k^n,\vtheta)|\frac{R}{1-\gamma}.
+\]
+In the case of Gaussian policy, bounded action space ($|a| \leq \overline{A}$) and under Assumption \ref{assum:1}, in the most general case, the range of the term $\nabla_{\theta_i}\log\pi(a_k^n|s_k^n,\vtheta)$ can be bounded as
+\[
+\frac{2M_{\phi}\overline{A}}{\sigma^2}.
+\] 
+Finally
+\[
+\mathbf{R} \leq \frac{2HM_{\phi}\overline{A}R}{\sigma^2(1-\gamma)}
+\]
+\end{proof}
