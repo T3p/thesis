@@ -127,7 +127,9 @@ Finally, it is interesting to look at the trend of the batch size over learning 
 \label{fig:7}
 \end{figure}
 
-As expected, the batch size increases as the optimal parameter is approached, since positive improvements require more and more accuracy. The trend is evidently superlinear, with the exception of Hoeffding's bound with te theoretical range bound, which however selects very high batch sizes from the beginning.
+As expected, the batch size increases as the optimal parameter is approached, since positive improvements require more and more accuracy. The trend is evidently superlinear, with the exception of Hoeffding's bound with te theoretical range bound, which however selects very high batch sizes from the beginning. 
+
+In all the experiments, the step size $\alpha$ is of the order of $10^{-6}$ and does not change significantly over learning iterations.
 
 
 \section{Multi-dimensional LQG}

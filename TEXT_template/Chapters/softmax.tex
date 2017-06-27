@@ -62,14 +62,38 @@ H(\pi_{\vtheta'},\pi_{\vtheta}) &=
 The rest of the proof is trivial.
 \end{proof}
 
-\begin{theorem}
+\begin{theorem}\label{theo:softmax1}
 If $\pi_{\vtheta}$ is a softmax policy and $\vtheta' = \vtheta+\Lambda\gradJ{\vtheta}$:
 \begin{align*}
 \DeltaJ &\geq \gradJ{\vtheta}^T\Lambda\gradJ{\vtheta} \\
-	&- \frac{6M_{\phi}^2|\mathcal{A}|R\norm[1]{\Lambda\gradJ{\vtheta}}^2}{(1-\gamma)^2} -
-	\frac{2\gamma M_{\phi}R\norm[1]{\Lambda\gradJ{\vtheta}}}{(1-\gamma)^3}
+	&-c\norm[1]{\Lambda\gradJ{\vtheta}}^2 -
+	b\norm[1]{\Lambda\gradJ{\vtheta}}
+\end{align*},
+where
+\begin{align*}
+c &= \frac{6M_{\phi}^2|\mathcal{A}|R}{(1-\gamma)^2}, \\
+b &=  \frac{2\gamma M_{\phi}R}{(1-\gamma)^3}
 \end{align*}
 \end{theorem}
 \begin{proof}
 It's enough to plug the results from Lemmas \ref{lem:softmax_diff} and \ref{lem:softmax_d2} into Lemma 3.1 from \cite{Pirotta2013adaptive}.
+\end{proof}
+
+\begin{corollary}
+The performance lower bound of Theorem \ref{theo:softmax1} is maximized by the following non-scalar step size:
+\[ \alpha_{k}^*=	
+\begin{cases}
+	\frac{1}
+		{2c}\left(1-\frac{b}{\norm[\infty]{\gradJ{\vtheta}}}\right) & 
+		\text{if } k = \arg\max\limits_i |\gradJ{\theta_i}|,	\\
+		0 & \text{otherwise},
+\end{cases}
+\]
+which guarantees the following performance improvement: 
+\[
+\DeltaJ \geq \frac{\left(\norm[\infty]{\gradJ{\vtheta}} - b\right)^2}{4c}.
+\]
+\end{corollary}
+\begin{proof}
+The proof is similar to the one of Corollary \ref{cor:1}
 \end{proof}
