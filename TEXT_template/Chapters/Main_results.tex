@@ -1,4 +1,4 @@
-\chapter{Adaptive Batch Size for Policy Gradient}
+\chapter{Adaptive Batch Size for Policy Gradient}\label{chap:main}
 In this chapter we propose a new safe approach to policy gradient. As mentioned in Section \ref{sec:beyond}, the safe policy gradient algorithms that has been proposed so far in the literature have focused on the choice of the optimal step size, while, to the best of our knowledge, the choice of the batch size has been neglected. We propose a method to jointly optimize both meta-parameters in a way that is both safe and cost-sensitive. We focus on the class of Gaussian policies, which is the most commonly used to address control problems with continuous action spaces.
 
 
@@ -239,7 +239,7 @@ where $c = \frac{RM_{\phi}^2}{(1-\gamma)^2\sigma^2}\left(\frac{|\mathcal{A}|}{\s
 \]
 \end{restatable}
 
-The complete proof is left to Appendix \ref{app:proofs}, but TODO: obj function shape.
+The complete proof is left to Appendix \ref{app:proofs}.
 
 The main peculiarity of this result is that the step size is constant, in the sense that its value does not depend on the gradient estimate. This can be explained in terms of a duality between step size and batch size: in other conservative adaptive-step size approaches, such as the one proposed with Theorem \ref{theo:5}, the step size is kept small to counteract policy updates that are too off due to bad gradient estimates. When also the batch size is made adaptive, a sufficient number of sample trajectories can be taken to keep the policy update on track even with a constant-valued step size.
 \paragraph{}
@@ -257,7 +257,7 @@ Notice also that the optimal batch size, as defined in Theorem \ref{theo:5}, is 
 where $d_\delta$ is computed with the latest available data and $N$ is the batch size used to collect them. A collateral effect of this approach is that, due to integer approximation, the step size is no longer constant. However, the variations in its value should be quite small.
 \paragraph{}
 These expedients lead to the following algorithm: 
-\begin{algorithm}[H]
+\begin{algorithm}[H]\label{alg:adabatch}
 \caption{Adaptive Policy Gradient}\label{alg:general}
 \begin{algorithmic}
 \State set initial policy parametrization $\vtheta$
@@ -281,9 +281,12 @@ These expedients lead to the following algorithm:
 \EndWhile
 \end{algorithmic}
 \end{algorithm}
+
+Note that there is still a parameter that must be selected by an expert: $\delta$. This is the probability of having a worsening update, since monotonic improvement is guaranteed with probability $(1-\delta)^m$. Intuitively, the choice of $\delta$ depends on risk attitude and should be small in critical applications. However, numerical simulations (see Section \ref{sec:simul}) show that, at least for simple problems, $\delta$ can be set to very high values ($\sim 1$) without compromising monotonic improvement. This can be useful, since larger values of $\delta$ lead to faster convergence.
+
 We now consider some concentration bounds in more detail, providing the values for $d_{\delta}$ and the corresponding explicit expressions for $N^*$.
 
-\subsection{Chebyshev's bound}
+\subsection{Chebyshev's bound}\label{sec:chebyshev}
 We report here the sample mean version of Chebyshev's bound for a generic stochastic variable $X$:
 \[
 	\Pr(|E[X] - \overline{X}_N| \geq \epsilon) \leq \frac{Var[X]}{N},
@@ -378,7 +381,7 @@ d_\delta= \sqrt{2S_N\ln{\nicefrac{3}{\delta}}}, && f=3\mathbf{R}\ln{\nicefrac{3}
 
 No reasonably simple closed-form solution is available in this case, requiring a linear search of the batch size $N^*$ maximizing $\Upsilon_\delta$. 
 
-the cost function to optimize becomes (already optimized w.r.t the step size):
+The cost function to optimize becomes (already optimized w.r.t the step size):
 \[
 \Upsilon_{\delta}(\Lambda^*,N) = \frac{\left(\norm[\infty]{\gradApp{\vtheta}} - 
 		\sqrt{\frac{2S_N\ln{\nicefrac{3}{\delta}}}{N}} - \frac{3\mathbf{R}\ln{\nicefrac{3}{\delta}}}{N}\right)^4}
@@ -396,11 +399,11 @@ so $N_0$ can be used as the starting point of the linear search.
 Computing the derivative w.r.t $N$ we obtain two factors for the numerator:
 
 \begin{align*}
-&\left(d_{\delta}\sqrt{N}+f_{\delta} - \norm[\infty]{\gradApp{\vtheta}}N\right)^3 \\
+&\left(d_{\delta}\sqrt{N}+f_{\delta} - \norm[\infty]{\gradApp{\vtheta}}N\right)^3, \\
 &\left(2d_{\delta}^2N+5d_{\delta}f_{\delta}\sqrt{N}+3d_{\delta}\norm[\infty]{\gradApp{\vtheta}}N^{\nicefrac{3}{2}} +3f_{\delta}^2+6f\norm[\infty]{\gradApp{\vtheta}}N-\norm[\infty]{\gradApp{\vtheta}}^2N^2\right).
 \end{align*}
 
-The left first one gives again $N_0$. By applying Descartes' rule of signs to the other one, seen as a polynomial in $\sqrt{N}$, we see that it gives just one root. The exact expression of this maximum is too big to be reported and too long to code, but its uniqueness, together with the fact that $\Upsilon_{\delta}$ goes to $0$ as N goes to infinity, justifies the following methodology: to find $N^*$, start from $N_0$ and stop as soon as the value of the cost function $\Upsilon(\Lambda^*,N)$ begins to decrease.
+The left first one gives again $N_0$, which is the global minimum. By applying Descartes' rule of signs to the other one, seen as a polynomial in $\sqrt{N}$, we see that it gives just one root. The exact expression of this maximum is too big to be reported and too long to code, but its uniqueness, together with the fact that $\Upsilon_{\delta}$ goes to $0$ as N goes to infinity, justifies the following methodology: to find $N^*$, start from $N_0$ and stop as soon as the value of the cost function $\Upsilon(\Lambda^*,N)$ begins to decrease.
 \paragraph{}
 Note also that the optimal step size is no longer constant: it can be computed with the expression given in Corollary \ref{cor:3} by setting $\epsilon := \epsilon(N^*)$.
 Finally, as for the Hoeffding's bound, the range $\mathbf{R}$ can be upper bounded exactly or estimated from samples.

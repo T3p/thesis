@@ -1,0 +1,13 @@
+Estimator,Bound,d,Avg Performance,Confidence Interval
+REINFORCE,Chebyshev,0.95,-11.3266,[-11.3277; -11.3256]
+REINFORCE,Chebyshev,0.75,-11.4303,[-11.4308;  -11.4297]
+REINFORCE,Chebyshev,0.5,-11.5947,[-11.5958; -11.5937]
+G(PO)MDP,Chebyshev,0.95,-10.6085,[-10.6087;  -10.6083]
+G(PO)MDP,Chebyshev,0.75,-10.7141,[-10.7145; -10.7136]
+G(PO)MDP,Chebyshev,0.5,-10.9036,[-10.904;  -10.9031]
+G(PO)MDP,Chebyshev,0.25,-11.2355,[-11.2363; -11.2346]
+G(PO)MDP,Chebyshev,0.05,-11.836,[-11.8368; -11.8352]
+G(PO)MDP,Hoeffding,0.95,-11.914,[-11.9143; -11.9136]
+G(PO)MDP,Bernstein,0.95,-10.2159,[-10.2162; -10.2155]
+G(PO)MDP,Hoeffding (empirical range),0.95,-9.8582,[-9.8589;  -9.8574]
+G(PO)MDP,Bernstein (empirical range),0.95,-9.6623,[-9.6619; -9.6627]
