@@ -29,7 +29,7 @@ with $\alpha_i \geq 0$ for $i=1,\dotsc,m$. The policy parameters can be updated 
 \[
 \vtheta'=\vtheta+\Lambda\gradJ{\vtheta}.
 \]
-Note that the direction of the update can differ from the gradient direction, but, being the $\alpha_i$ non-negative, the absolute angular difference is never more than $\nicefrac{\pi}{2}$, so that convergence to local optima can still be assured.
+Notice that the direction of the update can differ from the gradient direction, but, being the $\alpha_i$ non-negative, the absolute angular difference is never more than $\nicefrac{\pi}{2}$, so that convergence to local optima can still be assured.
 The traditional scalar step-size update can be seen as a special case where $\Lambda = \alpha I$.
 \paragraph{}
 By adapting Theorem 4.3 in \cite{NIPS2013_5186} to the new parameter update, we can obtain a lower bound on the policy performance improvement. To do so, we first need the following assumption on state features:
@@ -92,7 +92,7 @@ which guarantees the following performance improvement:
 \]
 \end{restatable}
 The performance improvement guarantee is obtained simply by substituting the optimal value for $\Lambda$ back into the bound of theorem  \ref{theo:1}.
-Note that the update induced by the optimal $\Lambda$ corresponds to employing a constant, scalar step size to update just one parameter at a time (the one corresponding to the greatest gradient magnitude).
+Notice that the update induced by the optimal $\Lambda$ corresponds to employing a constant, scalar step size to update just one parameter at a time (the one corresponding to the greatest gradient magnitude).
 This method is known in the literature as coordinate descent.
 We propose an intuitive explanation of this result: the bound from Theorem \ref{theo:1} is part of the family of performance improvement bounds originated from \cite{kakade2002approximately}. What has been observed in Section \ref{sec:CPI} about the original bound is also valid here: the positive part accounts to the average advantage of the new policy over the old one, while the negative part penalizes large parameter updates, which may result in overshooting. Updating just the parameter corresponding to the larger policy gradient component represents an intuitive trade-off between these two objectives.
 We now show how this result represents an improvement \wrt the adaptive scalar step size proposed in \cite{NIPS2013_5186} for the current setting:
@@ -239,14 +239,20 @@ where $c = \frac{RM_{\phi}^2}{(1-\gamma)^2\sigma^2}\left(\frac{|\mathcal{A}|}{\s
 \]
 \end{restatable}
 
-The complete proof is left to Appendix \ref{app:proofs}.
+The complete proof is left to Appendix \ref{app:proofs}, but Figure \ref{fig:0} provides an intuition. The cost function $\Upsilon_\delta$ is plotted over value of $N$. Real data from one of the experiments of Section \ref{sec:lqg1d} were used. The function is enhanced to make the peaks more visible, without altering the overall shape. We can see two stationary points: call $N_0$ the minimum and $N^*$ the maximum (marked with a diamond). $N_0$ has value $0$ and is also the global minimum. This point corresponds to the case $\epsilon = \norm[\infty]{\gradApp{\vtheta}}$. Going towards $N=0$, $\Upsilon_\delta$ goes to infinity, because of the $1/N$ cost factor. However, for $N<N_0$, Assumption \ref{assum:3} is not satisfied, so no performance improvement can be guaranteed at all. In the feasible region, $N\geq N_0$, local maximum $N^*$ is also the global maximum. This is the optimal batch size.
+
+\begin{figure}[H]
+\includegraphics[width = 1.35\textwidth,right]{Images/upsilon.png}
+\caption{Cost function $\Upsilon_\delta$ over batch size $N$. The optimal batch size $N^*$ is marked with a diamond. Batch sizes under the global minimum $N_0$ do not guarantee any performance improvement.}
+\label{fig:0}
+\end{figure}
 
 The main peculiarity of this result is that the step size is constant, in the sense that its value does not depend on the gradient estimate. This can be explained in terms of a duality between step size and batch size: in other conservative adaptive-step size approaches, such as the one proposed with Theorem \ref{theo:5}, the step size is kept small to counteract policy updates that are too off due to bad gradient estimates. When also the batch size is made adaptive, a sufficient number of sample trajectories can be taken to keep the policy update on track even with a constant-valued step size.
 \paragraph{}
 We now analyze this approach from a more algorithmic perspective.
-Notice that, under Assumption \ref{assum:4}, Assumption \ref{assum:3} can be restated as:
+As already mentioned, under Assumption \ref{assum:4}, Assumption \ref{assum:3} can be restated as:
 \[
-	N \geq \frac{d_\delta^2}{\norm[\infty]{\gradApp{\vtheta}}^2},
+	N \geq N_0 \triangleq \frac{d_\delta^2}{\norm[\infty]{\gradApp{\vtheta}}^2},
 \]
 which is always verified by the proposed $N^*$. This means that the adaptive batch size never allows an estimation error larger than the gradient estimate. This is good news, but it may also lead to very high batch sizes once $\vtheta$ is very close to the optimal parameter. An additional stopping condition may be necessary, and one option is simply to set a maximum allowed batch size.
 \paragraph{}
@@ -282,7 +288,7 @@ These expedients lead to the following algorithm:
 \end{algorithmic}
 \end{algorithm}
 
-Note that there is still a parameter that must be selected by an expert: $\delta$. This is the probability of having a worsening update, since monotonic improvement is guaranteed with probability $(1-\delta)^m$. Intuitively, the choice of $\delta$ depends on risk attitude and should be small in critical applications. However, numerical simulations (see Section \ref{sec:simul}) show that, at least for simple problems, $\delta$ can be set to very high values ($\sim 1$) without compromising monotonic improvement. This can be useful, since larger values of $\delta$ lead to faster convergence.
+Notice that there is still a parameter that must be selected by an expert: $\delta$. This is the probability of having a worsening update, since monotonic improvement is guaranteed with probability $(1-\delta)^m$. Intuitively, the choice of $\delta$ depends on risk attitude and should be small in critical applications. However, numerical simulations (see Section \ref{sec:simul}) show that, at least for simple problems, $\delta$ can be set to very high values ($\sim 1$) without compromising monotonic improvement. This can be useful, since larger values of $\delta$ lead to faster convergence.
 
 We now consider some concentration bounds in more detail, providing the values for $d_{\delta}$ and the corresponding explicit expressions for $N^*$.
 
@@ -402,7 +408,6 @@ Computing the derivative w.r.t $N$ we obtain two factors for the numerator:
 &\left(d_{\delta}\sqrt{N}+f_{\delta} - \norm[\infty]{\gradApp{\vtheta}}N\right)^3, \\
 &\left(2d_{\delta}^2N+5d_{\delta}f_{\delta}\sqrt{N}+3d_{\delta}\norm[\infty]{\gradApp{\vtheta}}N^{\nicefrac{3}{2}} +3f_{\delta}^2+6f\norm[\infty]{\gradApp{\vtheta}}N-\norm[\infty]{\gradApp{\vtheta}}^2N^2\right).
 \end{align*}
-
 The left first one gives again $N_0$, which is the global minimum. By applying Descartes' rule of signs to the other one, seen as a polynomial in $\sqrt{N}$, we see that it gives just one root. The exact expression of this maximum is too big to be reported and too long to code, but its uniqueness, together with the fact that $\Upsilon_{\delta}$ goes to $0$ as N goes to infinity, justifies the following methodology: to find $N^*$, start from $N_0$ and stop as soon as the value of the cost function $\Upsilon(\Lambda^*,N)$ begins to decrease.
 \paragraph{}
 Note also that the optimal step size is no longer constant: it can be computed with the expression given in Corollary \ref{cor:3} by setting $\epsilon := \epsilon(N^*)$.

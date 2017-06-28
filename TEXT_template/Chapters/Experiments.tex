@@ -1,6 +1,6 @@
 \chapter{Numerical simulations}\label{sec:simul}
 
-\section{One-Dimensional LQG}
+\section{One-Dimensional LQG}\label{sec:lqg1d}
 In this section we test the proposed methods on the one-dimensional \ac{LQG} problem \cite{4867}. We use this task as a testing ground because it is simple, all the constants involved in our bounds can be computed exactly, and the optimal parameter $\theta^*$ is available as a reference.
 
 The LQG problem is a continuous \ac{MDP} defined by transition model:
@@ -29,7 +29,7 @@ Table \ref{tab:1} shows the improvement ratio for two parameterizations ($\sigma
 \label{tab:1}
 \caption{Improvement rate of the policy updates for different policy standard deviation $\sigma$, fixed batch size $N$ and fixed step size $\alpha$, using the G(PO)MDP gradient estimator.}
 \centering
-\begin{adjustbox}{center}
+\begin{adjustbox}{right}
 \begin{tabular}{@{}llccccccc@{}} 
 \toprule
 \phantom{abc} & \phantom{abc} & \multicolumn{3}{c}{$\sigma=0.5$} & \phantom{abc} & \multicolumn{3}{c}{$\sigma=1$} \\
@@ -51,11 +51,13 @@ We now proceed to test the methods described in Chapter \ref{chap:main}.
 In all the following simulations we use $\sigma = 1$ and start from $\theta=0$, stopping after a total of 30 million trajectories.
 
 We start by testing Algorithm \ref{alg:adabatch} with Chebyshev's bound as proposed in Section \ref{sec:chebyshev}. To estimate the gradient, we use the REINFORCE and G(PO)MDP gradient estimators. In both cases, we use optimal baseline from \cite{4867}.
-Figure \ref{fig:1} shows the expected performance over sample trajectories for the two gradient estimators and for different values of $\delta$, the probability with which worsening updates are allowed to take place. 
+Figure \ref{fig:1} shows the expected performance over sample trajectories for the two gradient estimators and for different values of $\delta$, the probability with which worsening updates are allowed to take place.
+
+ To make this and the following figures more interpretable, some words must be spent on how data were processed. Each learning iteration corresponds to a single value of $\theta$, with a corresponding expected performance. The latter was scaled over time, simply by maintaining the value for all the trajectories of the batch (a closer look to the plot would reveal a series of steps of variable length and height). The horizontal scaling was performed to better capture the improvement of performance over time.
 
 
-\begin{figure}[H]
-\includegraphics[width = \textwidth]{Images/chebyshev.png}
+\begin{figure}[h!]
+\includegraphics[width = 1.4\textwidth,left]{Images/chebyshev.png}
 \caption{Expected performance over sample trajectories using G(PO)MDP and REINFORCE (dashed) gradient estimators and Chebyshev bound, for different values of $\delta$. Expected performance is computed for each parameter update. Data are then scaled to account for the different batch sizes. All results are averaged over 5 runs of 30 million total trajectories each.}
 \label{fig:1}
 \end{figure}
@@ -66,8 +68,8 @@ Larger values of $\delta$  lead to better performance. Notice that an improvemen
 The next step is to compare the Chebyshev's bound approach to the other methods proposed in Section \ref{sec:batchsize}. We stick to the configuration that performed the best in the previous experiment: G(PO)MDP to estimate the gradient and $\delta=0.95$. 
 Figure \ref{fig:2} compares the performance of the different concentration bounds
 
-\begin{figure}[H]
-\includegraphics[width = \textwidth]{Images/compare_bounds.png}
+\begin{figure}[h!]
+\includegraphics[width = 1.36\textwidth,left]{Images/compare_bounds.png}
 \caption{Comparison of the performance of different statistical bounds, using the G(PO)MDP gradient estimator and $\delta=0.95$. All results are averaged over 5 runs.}
 \label{fig:2}
 \end{figure}
@@ -80,7 +82,7 @@ To better capture the performance of the different variants of the algorithm in 
 \label{tab:2}
 \caption{Average performance for different gradient estimators, statistical bounds and values of $\delta$. All results are averaged over 5 runs ($5\%$ confidence intervals are reported).}
 \centering
-\begin{adjustbox}{center}
+\begin{adjustbox}{right}
 \begin{tabular}{llccc}
 \toprule
 Estimator & Bound &$\delta$ & $\overline{\Upsilon}$ & Confidence interval \\\midrule 
@@ -91,43 +93,41 @@ Estimator & Bound &$\delta$ & $\overline{\Upsilon}$ & Confidence interval \\\mid
 \end{adjustbox}
 \end{table}
 
-Finally, it is interesting to look at the trend of the batch size over learning iterations. Figures \ref{fig:3} to \ref{fig:7} show the batch size for the different concentration bounds.
+Finally, it is interesting to look at the trend of the batch size over learning iterations. Figure \ref{fig:8} shows the batch size for the different concentration bounds.
 
-\begin{figure}[H]
-\includegraphics[width = \textwidth]{Images/batchsize_cheb.png}
-\caption{Adaptive batch size over learning iterations, using Chebyshev's bound.}
-\label{fig:3}
+\begin{figure}[h!]
+\begin{adjustbox}{left}
+	\subfloat[Chebyshev]{
+	\includegraphics[width = 1.4\linewidth]{Images/batchsize_cheb.png}
+	\label{fig:3}
+	}
+\end{adjustbox}
+\begin{adjustbox}{left}
+	\subfloat[Hoeffding]{
+	\includegraphics[width = 0.7\linewidth]{Images/batchsize_hoeff.png}
+	\label{fig:4}
+	}
+	\subfloat[Hoeffding with empirical range]{
+	\includegraphics[width = 0.7\linewidth]{Images/batchsize_hoeff_emp.png}
+	\label{fig:5}
+	}
+\end{adjustbox}
+\begin{adjustbox}{left}
+	\subfloat[Bernstein]{
+	\includegraphics[width = 0.7\linewidth]{Images/batchsize_bern.png}
+	\label{fig:6}
+	}
+	\subfloat[Bernstein with empirical range]{
+	\includegraphics[width = 0.7\linewidth]{Images/batchsize_bern_emp.png}
+	\label{fig:7}
+	}
+\end{adjustbox}
+\caption{Adaptive batch size over learning iterations for different concentration bounds. In all the cases, the G(PO)MDP gradient estimator and $\delta=0.95$ were used.}
+\label{fig:8}
 \end{figure}
 
 
-\begin{figure}[H]
-\includegraphics[width = \textwidth]{Images/batchsize_hoeff.png}
-\caption{Adaptive batch size over learning iterations, using Hoeffding's bound.}
-\label{fig:4}
-\end{figure}
-
-
-\begin{figure}[H]
-\includegraphics[width = \textwidth]{Images/batchsize_hoeff_emp.png}
-\caption{Adaptive batch size over learning iterations, using Hoeffding's bound with empirical range.}
-\label{fig:5}
-\end{figure}
-
-
-\begin{figure}[H]
-\includegraphics[width = \textwidth]{Images/batchsize_bern.png}
-\caption{Adaptive batch size over learning iterations, using empirical Bernstein's bound.}
-\label{fig:6}
-\end{figure}
-
-
-\begin{figure}[H]
-\includegraphics[width = \textwidth]{Images/batchsize_bern_emp.png}
-\caption{Adaptive batch size over learning iterations, using empirical Bernstein's bound with empirical range.}
-\label{fig:7}
-\end{figure}
-
-As expected, the batch size increases as the optimal parameter is approached, since positive improvements require more and more accuracy. The trend is evidently superlinear, with the exception of Hoeffding's bound with te theoretical range bound, which however selects very high batch sizes from the beginning. 
+As expected, the batch size increases as the optimal parameter is approached, since positive improvements require more and more accuracy. The trend is evidently superlinear, with the exception of Hoeffding's bound with the theoretical range bound, which however selects very high batch sizes from the beginning. 
 
 In all the experiments, the step size $\alpha$ is of the order of $10^{-6}$ and does not change significantly over learning iterations.
 
