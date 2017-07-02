@@ -1,2 +1,18 @@
-\chapter{Conclusion}
-This is a conclusion.
+\chapter{Conclusions}
+In this thesis we were able to devise an adaptive policy gradient algorithm for Gaussian policies that guarantees monotonic performance improvement with high probability. This algorithm performs coordinate descent and automatically selects both the step size for the parameter updates and the batch size used to collect samples. 
+
+Experiments showed that the algorithm is effective in guaranteeing monotonic improvement, but very conservative in the selection of the batch size. More empirical variants were proposed to address this problem, with satisfying results. However, there is evidence that the method is still quite conservative.
+First of all, the worsening probability $\delta$ turned out to have no actual effect on the improvement ratio. Even when values of $\delta$ close to one are selected, the algorithm is conservative enough to avoid oscillation at all. This deprives us of a degree of freedom that could be used to regulate the behavior of the algorithm depending, for instance, on risk aversion or on the degree of non-stationarity of the environment.
+Experiments also show how a manually selected batch size can still outperform our method in terms of average performance. Although small batch sizes do not guarantee monotonic improvement, not always the entity of oscillation has a relevant impact on performance. If we had more control on the wariness of the algorithm, we could allow some worsening updates in order to speed up convergence, without compromising long term performance.
+
+Future work could focus on improving the method by devising tighter bounds on the performance improvement.
+This would allow to guarantee safety with smaller batches, improving convergence speed, and to gain more control on the degree of safety that needs to be imposed.
+
+The bounds proposed in Section \ref{sec:chebyshev} for the REINFORCE and the G(PO)MDP gradient estimators could be improved by taking into consideration also the effect of variance-minimizing baselines. Additionally, similar ad-hoc bounds could be devised for the other gradient estimation algorithms described in Section \ref{sec:pol_grad}.
+
+Another possibility for future work is to extend the results to more classes of policies. The current approach can be applied only to Gaussian policies with linear expectation and constant standard deviation. Although this kind of policy is broadly used in control tasks, it doesn't cover all the possible applications of policy gradient methods. 
+One idea is to generalize the present results, from more complex Gaussian policies to generic parametrized policies.
+It would also be useful to adapt the results to other specific classes of policies that are commonly used in practice. For instance, the Softmax policy is a common choice for tasks characterized by a discrete action space. Appendix \ref{app:softmax} shows a first attempt in this direction, highlighting the main difficulties that arise when the approach used for Gaussian policies has to be adapted to the new class.
+
+Other, more ambitious developments may include the analysis of other parameters and their relationship with the ones that have already been considered.
+In particular, exploration represents a major problem for policy gradient, as pointed out in \cite{kakade2002approximately}. Including exploration-controlling parameters, such as the standard deviation of the Gaussian policy, in the analysis may lead to faster safe policy gradient algorithms.
