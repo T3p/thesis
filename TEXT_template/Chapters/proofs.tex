@@ -2,9 +2,9 @@
 In this appendix we provide the proofs that were omitted in Chapter \ref{chap:main}. Some auxiliary lemmas are also introduced and proved.
 
 \begin{lemma}\label{aux:1}
-For any initial state distribution $\mu$ and any pair of stationary Gaussian policies $\pi_{\vtheta} \sim \mathcal{N}(\vtheta^T\boldsymbol{\phi}(s),\sigma^2)$ and $\pi_{\vtheta'} \sim \mathcal{N}(\vtheta'^T\boldsymbol{\phi}(s),\sigma^2)$, so that $\vtheta'=\vtheta+\Lambda\gradJ{\vtheta}$, and for any state $s$ and action $a$
+For any initial state distribution $\mu$ and any pair of stationary Gaussian policies $\pi_{\vtheta} \sim \mathcal{N}(\vtheta^T\boldsymbol{\phi}(s),\sigma^2)$ and $\pi_{\vtheta'} \sim \mathcal{N}(\vtheta'^T\boldsymbol{\phi}(s),\sigma^2)$, so that $\vtheta'=\vtheta+\Lambda\gradJ{\vtheta}$, and for any state $s$ and action $a$:
 \[
-\pi(a|s,\vtheta') - \pi(a|s,\vtheta) \geq \nabla_{\vtheta}\pi(a|s,\vtheta)^T\Lambda\gradJ{\vtheta} 
+\pi_{\vtheta'}(a|s) - \pi_{\vtheta}(a|s) \geq \nabla_{\vtheta}\pi_{\vtheta}(a|s)^T\Lambda\gradJ{\vtheta} 
 	- \frac{M_{\phi}^2\norm[1]{\Lambda\gradJ{\vtheta}}^2}{\sqrt{2\pi}\sigma^3}
 \]
 \end{lemma}
@@ -12,13 +12,13 @@ For any initial state distribution $\mu$ and any pair of stationary Gaussian pol
 \begin{proof}
 By exploiting Taylor's expansion
 \begin{align*}
-\pi(a|s,\vtheta') = & \pi(a|s,\vtheta + \Lambda\gradJ{\vtheta}) = \\
-	& \pi(a|s,\vtheta) + \nabla_{\vtheta}\pi(a|s,\vtheta)^T\Delta\vtheta+R_1(\Delta\vtheta),
+\pi_{\vtheta'}(a|s) = & \pi_{\vtheta + \Lambda\gradJ{\vtheta}}(a|s) = \\
+	& \pi_{\vtheta}(a|s) + \nabla_{\vtheta}\pi_{\vtheta}(a|s)^T\Delta\vtheta+R_1(\Delta\vtheta),
 \end{align*}
-where $R_1(\Delta\vtheta)$ is the remainder of the series which can be bounded as follows by exploiting Lemma 4.1 from \cite{NIPS2013_5186} and Assumption 3.1:
+where $R_1(\Delta\vtheta)$ is the remainder of the series, which can be bounded as follows by exploiting Lemma 4.1 from \cite{NIPS2013_5186} and Assumption 3.1:
 \begin{align*}
 R_1(\Delta\vtheta) = & \sum\limits_{i=1}^m\sum\limits_{j=1}^m
-\frac{\partial^2\pi(a|s,\vtheta)}{\partial\theta_i\partial\theta_j} \bigg|_{\vtheta+c\Delta\vtheta} \frac{\Delta\theta_i\Delta\theta_j}{1+I(i=j)} && \text{for some $c \in (0,1)$} \\
+\frac{\partial^2\pi_{\vtheta}(a|s)}{\partial\theta_i\partial\theta_j} \bigg|_{\vtheta+c\Delta\vtheta} \frac{\Delta\theta_i\Delta\theta_j}{1+I(i=j)} & \text{for some $c \in (0,1)$} \\
 	\geq & - \sum\limits_{i=1}^m\sum\limits_{j=1}^m \frac{|\phi_i(s)\phi_j(s)|}{\sqrt{2\pi}\sigma^3}
 	\frac{\Delta\theta_i\Delta\theta_j}{1+I(i=j)} \\
 	= & -\frac{1}{\sqrt{2\pi}\sigma^3}\sum\limits_{i=1}^m\sum\limits_{j=1}^m
@@ -56,12 +56,12 @@ We plug the results of Lemmas \ref{aux:1} and \ref{aux:2} into Lemma 3.1 from \c
 \begin{align*}
 J_{\mu}(\vtheta') - J_{\mu}(\vtheta) \geq  
 	& \frac{1}{1-\gamma} \int_{\mathcal{S}}d_{\mu}^{\pi_{\vtheta}}(s)
-	\int_{\mathcal{A}} (\pi(a|s,\vtheta') - \pi(a|s,\vtheta))Q^{\pi_{\vtheta}}(s,a)\mathrm{d}a\mathrm{d}s \\
+	\int_{\mathcal{A}} (\pi_{\vtheta'}(a|s) - \pi_{\vtheta}(a|s))Q^{\pi_{\vtheta}}(s,a)\mathrm{d}a\mathrm{d}s \\
 	& -\frac{\gamma}{2(1-\gamma)^2} \norm[\infty]{\pi_{\vtheta'}-\pi_{\vtheta}}^2 \norm[\infty]{Q^{\pi_{\vtheta}}} \\
 	\geq & 
 		\frac{1}{1-\gamma} \int_{\mathcal{S}}d_{\mu}^{\pi_{\vtheta}}(s)
 		\int_{\mathcal{A}}
-		\nabla_{\vtheta}\pi(a|s,\vtheta)^T\Lambda\gradJ{\vtheta}
+		\nabla_{\vtheta}\pi_{\vtheta}(a|s)^T\Lambda\gradJ{\vtheta}
 		Q^{\pi_{\vtheta}}(s,a)\mathrm{d}a\mathrm{d}s && (1) \\
 		& - \frac{M_{\phi}^2\norm[1]{\Lambda\gradJ{\vtheta}}^2}
 		{(1-\gamma)\sqrt{2\pi}\sigma^3}
@@ -96,11 +96,11 @@ For every state $s \in \mathcal{S}$ and every action $a \in \mathcal{A}$, the Q-
 % \paragraph{Theorem \ref{theo:3}}
 \thirdtheorem*
 \begin{proof}
-The proof immediately follows from Theorem 3.3 and the definition of $\gradDown{\vtheta}$ and $\gradUp{\vtheta}$. Note that the saturation to $0$ in $\gradDown{\vtheta}$ is necessary since $\gradJ{\vtheta}$ is taken with absolute value in the negative term of the original bound.
+The proof immediately follows from Theorem 3.3 and the definitions of $\gradDown{\vtheta}$ and $\gradUp{\vtheta}$ provided in Section \ref{sec:approx}. Note that the saturation to $0$ in $\gradDown{\vtheta}$ is necessary since $\gradJ{\vtheta}$ is taken with absolute value in the negative term of the original bound.
 \end{proof}
 
-\paragraph{Theorem \ref{theo:5}}
-% {\fourththeorem*}
+%\paragraph{Theorem \ref{theo:5}}
+\fourththeorem*
 \begin{proof}
 We first optimize the cost function $\Upsilon_{\delta}$ w.r.t $\Lambda$. Since $\Upsilon_{\delta}$ is just the bound from Theorem \ref{theo:3} divided by $N$, we can use the result from Corollary \ref{cor:3}, which under Assumption \ref{assum:4} can be expressed as:
 \[
@@ -126,7 +126,7 @@ To justify the use of Corollary \ref{cor:3}, our $N^*$ must be compliant with \r
 \[
 N \geq N_0 := \frac{d_{\delta}^2}{\norm[\infty]{\gradApp{\vtheta}}^2}.
 \] 
-By computing the derivative $\nicefrac{\partial\Upsilon_{\delta}}{\partial N}$ we find just two stationary points in $[N_0,+\infty)$: the first one is $N_0$ itself, which is a minimum ($\Upsilon_{\delta}(\Lambda^*,N_0) = 0$ and $\Upsilon_{\delta}$ is non-negative); the other one is our optimal batch size:
+By computing the derivative $\nicefrac{\partial\Upsilon_{\delta}}{\partial N}$ we find just two stationary points in $[N_0,+\infty)$: the first one is $N_0$ itself, which is a minimum, since $\Upsilon_{\delta}(\Lambda^*,N_0) = 0$ and $\Upsilon_{\delta}$ is non-negative. The other stationary point is our optimal batch size:
 \[
 	N^* =  \frac{(13+3\sqrt{17})d_{\delta}^2}{2\norm[\infty]{\gradApp{\vtheta}}^2}.
 \]

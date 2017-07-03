@@ -1,5 +1,9 @@
 \chapter{Numerical simulations}\label{sec:simul}
 
+In this chapter we conduct some experiments to test our safe method. We compare the different variants of our algorithm to observe their performance in practice. We also compare our method with older or more common approaches to see how much the theoretical improvements obtained in the previous chapter translate into better practical results.
+In Section \ref{sec:lqg1d} we use a simple simulated control task, one-dimensional \ac{LQG}, to compare the different variants of our algorithm.
+In Section \ref{sec:lqg2d} we use a two-dimensional variant of the same problem to show the advantages of our method over older approaches. 
+
 \section{One-Dimensional LQG}\label{sec:lqg1d}
 In this section we test the proposed methods on the one-dimensional \ac{LQG} problem \cite{4867}. We use this task as a testing ground because it is simple, all the constants involved in our bounds can be computed exactly, and the optimal parameter $\theta^*$ is available as a reference.
 
@@ -10,7 +14,7 @@ The LQG problem is a continuous \ac{MDP} defined by transition model:
 
 reward function:
 \[
-	r_t=-0.5(s_t^2+a_t^2).
+	r_t=-0.5(s_t^2+a_t^2),
 \]
 and Gaussian policy:
 \[
@@ -25,8 +29,9 @@ We use a discount factor $\gamma=0.9$, which gives as optimal parameter $\theta^
 In our experiments, we are interested both in the convergence speed and in policy oscillation. We call \textit{improvement ratio} the ratio of policy updates that does not result in a worsening of the expected performance. First of all, we want to analyze how the choice of fixed step sizes and batch sizes may affect the improvement ratio and how much it depends on the variability of the trajectories (that in this case is due to the variance of the policy $\sigma$).
 Table \ref{tab:1} shows the improvement ratio for two parameterizations ($\sigma=0.5$ and $\sigma=1$) when various constant step sizes and batch sizes are used, starting from $\theta=-0.55$ and stopping after a total of one million trajectories. 
 
-\begin{table}[H]\label{tab:1}
-\caption{Improvement ratio of the policy updates for different policy standard deviation $\sigma$, fixed batch size $N$ and fixed step size $\alpha$, using the G(PO)MDP gradient estimator.}
+\begin{table}[H]
+\caption[Improvement ratio of the policy updates for different parametrizations of the LQG task.]{Improvement ratio of the policy updates for different policy standard deviation $\sigma$, fixed batch size $N$ and fixed step size $\alpha$, using the G(PO)MDP gradient estimator.}
+\label{tab:1}
 \centering
 \begin{adjustbox}{right}
 \begin{tabular}{@{}llccccccc@{}} 
@@ -56,8 +61,8 @@ Figure \ref{fig:1} shows the expected performance over sample trajectories for t
 
 
 \begin{figure}[h!]
-\includegraphics[width = 1.4\textwidth,left]{Images/chebyshev.png}
-\caption{Expected performance over sample trajectories using G(PO)MDP and REINFORCE (dashed) gradient estimators and Chebyshev bound, for different values of $\delta$. Expected performance is computed for each parameter update. Data are then scaled to account for the different batch sizes. All results are averaged over 5 runs of 30 million total trajectories each.}
+\includegraphics[width = \textwidth,center]{Images/chebyshev.pdf}
+\caption[Expected performance over sample trajectories in the one-dimensional LQG task for different gradient estimators ad values of $\delta$.]{Expected performance over sample trajectories in the one-dimensional \ac{LQG} task, using G(PO)MDP and REINFORCE (dashed) gradient estimators and Chebyshev bound, for different values of $\delta$. Expected performance is computed for each parameter update. Data are then scaled to account for the different batch sizes. All results are averaged over 5 runs of 30 million total trajectories each.}
 \label{fig:1}
 \end{figure}
 
@@ -65,21 +70,21 @@ In general REINFORCE performs worse than G(PO)MDP due to its larger variance.
 Larger values of $\delta$  lead to better performance. Notice that an improvement ratio of $1$ is achieved also with large values of $\delta$. This is due to the fact that the bounds used in the development of our method are not tight. Being the method this conservative, in practical applications $\delta$ can be set to a high value to improve the convergence rate.
 \paragraph{}
 The next step is to compare the Chebyshev's bound approach to the other methods proposed in Section \ref{sec:batchsize}. We stick to the configuration that performed the best in the previous experiment: G(PO)MDP to estimate the gradient and $\delta=0.95$. 
-Figure \ref{fig:2} compares the performance of the different concentration bounds
+Figure \ref{fig:2} compares the performance of the different concentration bounds.
 
 \begin{figure}[h!]
 \includegraphics[width = 1.36\textwidth,left]{Images/compare_bounds.png}
-\caption{Comparison of the performance of different statistical bounds, using the G(PO)MDP gradient estimator and $\delta=0.95$. All results are averaged over 5 runs.}
+\caption[Comparison of the performance of different statistical bounds in the one-dimensional LQG task.]{Comparison of the performance of different statistical bounds in the one-dimensional \ac{LQG} task, using the G(PO)MDP gradient estimator and $\delta=0.95$. All results are averaged over 5 runs.}
 \label{fig:2}
 \end{figure}
 
 As expected, Bernstein's bound performs better than Chebyshev's, especially in the empirical range version. The rigorous version of Hoeffding's bound performs very poorly, while the one using the empirical range is almost as good as the corresponding Bernstein method. This is due to the fact that the bound on the gradient estimate range is very loose, since it accounts also for unrealistic combinations of state, action and reward.
 \paragraph{}
-To better capture the performance of the different variants of the algorithm in a real-time scenario, we define a figure of merit $\overline{\Upsilon}$, which is obtained by averaging the real performance (measured during learning) over all the trajectories, coherently with the cost function used to derive the optimal batch size. The results are reported in Table \ref{tab:2}.
+To better capture the performance of the different variants of the algorithm in a real-time scenario, we define a metric $\overline{\Upsilon}$, which is obtained by averaging the real performance (measured during learning) over all the trajectories, coherently with the cost function used to derive the optimal batch size. The results are reported in Table \ref{tab:2}.
 
 \begin{table}[H]
+\caption[Average performance in the one-dimensional LQG task for different gradient estimators, statistical bounds and values of $\delta$.]{Average performance in the one-dimensional \ac{LQG} task for different gradient estimators, statistical bounds and values of $\delta$. All results are averaged over 5 runs ($5\%$ confidence intervals are reported).}
 \label{tab:2}
-\caption{Average performance for different gradient estimators, statistical bounds and values of $\delta$. All results are averaged over 5 runs ($5\%$ confidence intervals are reported).}
 \centering
 \begin{adjustbox}{right}
 \begin{tabular}{llccc}
@@ -121,7 +126,7 @@ Finally, it is interesting to look at the trend of the batch size over learning 
 	\label{fig:7}
 	}
 \end{adjustbox}
-\caption{Adaptive batch size over learning iterations for different concentration bounds. In all the cases, the G(PO)MDP gradient estimator and $\delta=0.95$ were used.}
+\caption[Adaptive batch size over learning iterations in the one-dimensional LQG task for different concentration bounds.]{Adaptive batch size over learning iterations in the one-dimensional \ac{LQG} task for different concentration bounds. In all the cases, the G(PO)MDP gradient estimator and $\delta=0.95$ were used.}
 \label{fig:8}
 \end{figure}
 
@@ -131,7 +136,7 @@ As expected, the batch size increases as the optimal parameter is approached, si
 In all the experiments, the step size $\alpha$ is of the order of $10^{-6}$ and does not change significantly over learning iterations.
 
 
-\section{Multi-dimensional LQG}
+\section{Multi-dimensional LQG}\label{sec:lqg2d}
 The one-dimensional \ac{LQG} problem was a good benchmark to compare the performance of different concentration bounds, but does not capture at all the coordinate descent aspect of our algorithm. Luckily, \ac{LQG} can easily be generalized to any number of dimensions $m$.
 
 Following the approach of \cite{Pirotta:2015:MRL:2888116.2888124}, we define multi-dimensional \ac{LQG} as an \ac{MDP} with transition model:
@@ -178,23 +183,24 @@ with corresponding expected performance $J_\mu(\vtheta^*) \simeq -422.616$. The 
 We test our adaptive algorithm on this task. We use the G(PO)MDP gradient estimator with optimal baseline, Bernstein's bound with empirical range and $\delta=0.95$.
 Figure \ref{fig:10} shows the evolution of the batch size over the learning process in the adaptive case.
 
-\begin{figure}[h!]\label{fig:10}
+\begin{figure}[h!]
 \includegraphics[width = 1.4\textwidth,left]{Images/lqg2d_batchsize.png}
-\caption{Adaptive batch size over learning iterations for the two-dimensional, independent \ac{LQG} task. G(PO)MDP gradient estimator with optimal baseline, Bernstein's bound with empirical range and $\delta=0.95$ were used.}
-\label{fig:9}
+\caption[Adaptive batch size over learning iterations in the two-dimensional LQG task.]{Adaptive batch size over learning iterations for the two-dimensional \ac{LQG} task. G(PO)MDP gradient estimator with optimal baseline, Bernstein's bound with empirical range and $\delta=0.95$ were used.}
+\label{fig:10}
 \end{figure}
 
 The adaptive batch size goes from $N \simeq 500$ in the first learning iterations, to $N\simeq2500$ in the end. The step size takes values of the order of $1e-6$ for the whole process.
 We compare the performance of our algorithm with the one of vanilla policy gradient with fixed step size and batch size. Since we want to focus our analysis to the effects of the batch size, we use G(PO)MDP with optimal baseline and $\alpha=1e-6$. We run two simulations, one with $N=1000$ and one with $N=100$. Figure \ref{fig:11} compares expected performance over learning iterations, while table \ref{tab:3} reports average performance $\overline{\Upsilon}$ and improvement ratio for the three cases.
 
-\begin{figure}[h!]\label{fig:11}
+\begin{figure}[h!]
 \includegraphics[width = 1.4\textwidth,left]{Images/lqg2d.png}
-\caption{Adaptive batch size over learning iterations for the two-dimensional, independent \ac{LQG} task. G(PO)MDP gradient estimator with optimal baseline, Bernstein's bound with empirical range and $\delta=0.95$ were used.}
-\label{fig:9}
+\caption[Expected performance over learning iterations in the two-dimensional LQG task.]{Expected performance over learning iterations in the two-dimensional \ac{LQG} task. The adaptive algorithm with Bernstein's bound and $\delta=0.95$ is compared with vanilla policy gradient with fixed $N=100,1000$ and $\alpha=1e-6$.}
+\label{fig:11}
 \end{figure}
 
-\begin{table}[h!]\label{tab:3}
-\caption{Average performance and improvement ratio for different simulations on the two-dimensional, independent \ac{LQG} task, using the G(PO)MDP gradient estimator with optimal baseline. The adaptive batch size is computed using Bernstein's bound with empirical range and $\delta=0.95$. The fixed batch sizes are used in conjunction with $\alpha=1e-6$.}
+\begin{table}[h!]
+\caption[Average performance and improvement ratio for different simulations on the two-dimensional LQG task.]{Average performance and improvement ratio for different simulations on the two-dimensional \ac{LQG} task, using the G(PO)MDP gradient estimator with optimal baseline. The adaptive batch size is computed using Bernstein's bound with empirical range and $\delta=0.95$. The fixed batch sizes are used in conjunction with $\alpha=1e-6$.}
+\label{tab:3}
 \centering
 \begin{adjustbox}{center}
 \begin{tabular}{@{}lcc@{}} 
@@ -217,10 +223,10 @@ Another interesting difference between our method and vanilla policy gradient is
 Although this does not affect performance significantly, it shows how our algorithm is able avoid useless changes in the current policy, which are potential causes of oscillation. To support this analysis with real data, Table \ref{tab:4} shows the final value of $\vtheta$ for the usual three simulations.
 
 \begin{table}[h!]\label{tab:4}
-\caption{Final value of the policy parameter $\vtheta$,after a total of 30 million trajectories, for different simulations on the two-dimensional, independent \ac{LQG} task, using the G(PO)MDP gradient estimator with optimal baseline. The adaptive batch size is computed using Bernstein's bound with empirical range and $\delta=0.95$. The fixed batch sizes are used in conjunction with $\alpha=1e-6$.}
+\caption[Final value of the policy parameter $\vtheta$ for different simulations on the two-dimensional LQG task.]{Final value of the policy parameter $\vtheta$,after a total of 30 million trajectories, for different simulations on the two-dimensional \ac{LQG} task, using the G(PO)MDP gradient estimator with optimal baseline. The adaptive batch size is computed using Bernstein's bound with empirical range and $\delta=0.95$. The fixed batch sizes are used in conjunction with $\alpha=1e-6$.}
 \centering
 \begin{adjustbox}{center}
-\begin{tabular}{@{}lc@{}} 
+\begin{tabular}{@{}ll@{}} 
 \toprule
 N & $\vtheta$ \\
 \midrule
@@ -234,7 +240,7 @@ Adaptive & $\begin{bmatrix}
 	\end{bmatrix}$\\
 1000 & $\begin{bmatrix}
 	-0.21 & -1.7e-5 		\\
-	-3.4e-5		 & -0.21
+	-3.3e-5		 & -0.21
 	\end{bmatrix}$\\
 \bottomrule
 \end{tabular}

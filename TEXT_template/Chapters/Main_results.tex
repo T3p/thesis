@@ -5,7 +5,7 @@ In this chapter we propose a new safe approach to policy gradient. As mentioned 
 
 \section{Overview}
 In this section we provide an overview of the approach that we will follow to obtain the adaptive batch size, justifying the main choices.
-Although our focus is on the batch size, the step size is still a fundamental parameter in controlling policy oscillation phenomena. For this reason, we start from an optimal step-size formulation to jointly optimize both meta-parameters. To do so, we improve an existing adaptive step-size method \cite{Pirotta2013adaptive}. We then find the best batch size to use with such an optimal step size.
+Although our focus is on the batch size, the step size is still a fundamental parameter in controlling policy oscillation phenomena. For this reason, we start from an optimal step-size formulation to jointly optimize both meta-parameters. To do so, we improve an existing adaptive step-size method \cite{NIPS2013_5186}. We then find the best batch size to use with such an optimal step size.
 However, it is not trivial to define a proper objective function for this goal. In the case of the step size, performance improvement $\DeltaJ$ is representative both of safety and of convergence speed. The batch size $N$, instead, affects learning times in an indirect way: larger batches require more time to collect samples, but this is not captured by $\DeltaJ$. What we need is an objective that is sensitive to the cost of collecting sample trajectories, \ie a cost-sensitive objective function. We decide to employ the following one:
 \[
 	\Upsilon = \frac{\DeltaJ}{N}.
@@ -16,7 +16,7 @@ Is following this approach that we derive the adaptive batch size, finally provi
 
 
 \section{Adaptive Coordinate Descent}
-In this section we improve the adaptive step-size method for Gaussian policies from Pirotta et al. \cite{Pirotta2013adaptive}, which have been described in Section \ref{sec:adaptive_ss}. We follow the same approach, with the major variant of adopting a non-scalar step size. This allows to control the update of the single policy parameter components independently, potentially allowing for better optimization. Indeed, we are able to show that this approach yields an improvement over the performance guarantee of \cite{Pirotta2013adaptive}. Rather surprisingly, this result is achieved with a coordinate descent update, where only one component at a time is updated. 
+In this section we improve the adaptive step-size method for Gaussian policies from Pirotta et al. \cite{NIPS2013_5186}, which have been described in Section \ref{sec:adaptive_ss}. We follow the same approach, with the major variant of adopting a non-scalar step size. This allows to control the update of the single policy parameter components independently, potentially allowing for better optimization. Indeed, we are able to show that this approach yields an improvement over the performance guarantee of \cite{NIPS2013_5186}. Rather surprisingly, this result is achieved with a coordinate descent update, where only one component at a time is updated. 
 We first stick to the theoretical setting in which the gradient is known exactly, then we take into account also the gradient estimation error.
 
 
@@ -69,7 +69,7 @@ where $c = \frac{RM_{\phi}^2}{(1-\gamma)^2\sigma^2}\left(\frac{|\mathcal{A}|}{\s
 
 The proofs of both bounds are provided in Appendix \ref{app:proofs}.
 \paragraph{}
-We then find the step size $\Lambda^*$ that maximizes this lower bound. To od so, we study the bound from Theorem 3.3 as a function of $\alpha_1,\dotsc,\alpha_m$ constrained by $\alpha_i \geq 0 \:\:\: \forall i=1,\dotsc,m$. The function has no stationary points. Moreover, except from degenerate cases, partial maximization is possible only along a single dimension at a time. Candidates for the optimum are thus attained only on the boundary, and are obtained by setting to $0$ all the components of the step size but one, say $\alpha_k$, which is set to $\frac{1}{2c}$.
+We then find the step size $\Lambda^*$ that maximizes this lower bound. To do so, we study the bound from Theorem 3.3 as a function of $\alpha_1,\dotsc,\alpha_m$ constrained by $\alpha_i \geq 0 \:\:\: \forall i=1,\dotsc,m$. The function has no stationary points. Moreover, except from degenerate cases, partial maximization is possible only along a single dimension at a time. Candidates for the optimum are thus attained only on the boundary, and are obtained by setting to $0$ all the components of the step size but one, say $\alpha_k$, which is set to $\frac{1}{2c}$.
 This assignment yields:
 \[
 \DeltaJ \geq  \frac{\gradJ{\theta_k}^2}{4c}.
@@ -93,7 +93,7 @@ which guarantees the following performance improvement:
 \end{restatable}
 The performance improvement guarantee is obtained simply by substituting the optimal value for $\Lambda$ back into the bound of theorem  \ref{theo:1}.
 Notice that the update induced by the optimal $\Lambda$ corresponds to employing a constant, scalar step size to update just one parameter at a time (the one corresponding to the greatest gradient magnitude).
-This method is known in the literature as coordinate descent.
+This method is known in the literature as coordinate descent \cite{Boyd:2004:CO:993483}.
 We propose an intuitive explanation of this result: the bound from Theorem \ref{theo:1} is part of the family of performance improvement bounds originated from \cite{kakade2002approximately}. What has been observed in Section \ref{sec:CPI} about the original bound is also valid here: the positive part accounts to the average advantage of the new policy over the old one, while the negative part penalizes large parameter updates, which may result in overshooting. Updating just the parameter corresponding to the larger policy gradient component represents an intuitive trade-off between these two objectives.
 We now show how this result represents an improvement \wrt the adaptive scalar step size proposed in \cite{NIPS2013_5186} for the current setting:
 \begin{restatable}{corollary}{secondcorollary}\label{cor:2}
@@ -207,7 +207,7 @@ where $B_{\delta}$ is the high probability lower bound on performance improvemen
 \end{definition}
 
 We now show how to jointly select the step size $\Lambda$ and the batch size $N$ so as to maximize $\Upsilon_{\delta}$.
-Notice that the dependence of $B_{\delta}$ on $N$ is entirely through $\epsilon$, which can be computed with a concentration bound. Of course, we would like $epsilon$ to be as tight as possible, but we must also consider the tractability of the resulting optimization problem. 
+Notice that the dependence of $B_{\delta}$ on $N$ is entirely through $\epsilon$, which can be computed with a concentration bound. Of course, we would like $\epsilon$ to be as tight as possible, but we must also consider the tractability of the resulting optimization problem. 
 We first restrict our analysis to concentration bounds that allow to express $\epsilon$ as follows:
 \begin{assumption}\label{assum:4}
 The per-component policy gradient estimation error made by averaging over $N$ sample trajectories can be bounded with probability at least $1-\delta$ by:
@@ -242,8 +242,8 @@ where $c = \frac{RM_{\phi}^2}{(1-\gamma)^2\sigma^2}\left(\frac{|\mathcal{A}|}{\s
 The complete proof is left to Appendix \ref{app:proofs}, but Figure \ref{fig:0} provides an intuition. The cost function $\Upsilon_\delta$ is plotted over value of $N$. Real data from one of the experiments of Section \ref{sec:lqg1d} were used. The function is enhanced to make the peaks more visible, without altering the overall shape. We can see two stationary points: call $N_0$ the minimum and $N^*$ the maximum (marked with a diamond). $N_0$ has value $0$ and is also the global minimum. This point corresponds to the case $\epsilon = \norm[\infty]{\gradApp{\vtheta}}$. Going towards $N=0$, $\Upsilon_\delta$ goes to infinity, because of the $1/N$ cost factor. However, for $N<N_0$, Assumption \ref{assum:3} is not satisfied, so no performance improvement can be guaranteed at all. In the feasible region, $N\geq N_0$, local maximum $N^*$ is also the global maximum. This is the optimal batch size.
 
 \begin{figure}[H]
-\includegraphics[width = 1.35\textwidth,right]{Images/upsilon.png}
-\caption{Cost function $\Upsilon_\delta$ over batch size $N$. The optimal batch size $N^*$ is marked with a diamond. Batch sizes under the global minimum $N_0$ do not guarantee any performance improvement.}
+\includegraphics[width = \textwidth,center]{Images/upsilon.pdf}
+\caption[Cost function $\Upsilon_\delta$ over batch size $N$.]{Cost function $\Upsilon_\delta$ over batch size $N$. The optimal batch size $N^*$ is marked with a diamond. Batch sizes under the global minimum $N_0$ do not guarantee any performance improvement.}
 \label{fig:0}
 \end{figure}
 
@@ -263,8 +263,9 @@ Notice also that the optimal batch size, as defined in Theorem \ref{theo:5}, is 
 where $d_\delta$ is computed with the latest available data and $N$ is the batch size used to collect them. A collateral effect of this approach is that, due to integer approximation, the step size is no longer constant. However, the variations in its value should be quite small.
 \paragraph{}
 These expedients lead to the following algorithm: 
-\begin{algorithm}[H]\label{alg:adabatch}
-\caption{Adaptive Policy Gradient}\label{alg:general}
+\begin{algorithm}[H]
+\caption{Adaptive Policy Gradient}
+\label{alg:adabatch}
 \begin{algorithmic}
 \State set initial policy parametrization $\vtheta$
 \State set initial batch size $N$ and maximum batch size $\overline{N}$

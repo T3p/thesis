@@ -37,20 +37,20 @@ such that $\pi(s)$ is the probability distribution over the action $a$ to take i
 We say that a policy $\pi$ is deterministic if for each $s \in \mathcal{S}$ there exists some $a \in \mathcal{A}$ such that $\pi(a \mid s) = 1$. With abuse of notation, we denote with $\pi(s)$ the action selected with probability $1$ by a deterministic policy $\pi$ in state $s$.
 
 \subsection{Reinforcement Learning: problem formulation}
-Given a \ac{MDP}, the goal of Reinforcement Learning is to find an optimal policy $\pi^*$ without an a-priori model of the environment, i.e.\ without knowing $\mathcal{P},\mathcal{R},\mu$. The optimal policy must be learned by direct interaction with the environment (which may be a real system or a simulation). The objective of the agent is to maximize the total discounted reward, called return $v$:
+Given a \ac{MDP}, the goal of Reinforcement Learning is to find an optimal policy $\pi^*$ without an a-priori model of the environment, i.e.\ without knowing $\mathcal{P}$, $\mathcal{R}$ and $\mu$. The optimal policy must be learned by direct interaction with the environment (which may be a real system or a simulation). The objective of the agent is to maximize the total discounted reward, called return $v$:
 \[
-	v = \sum_{t=0}^{\infty}\gamma^tr_{t}
+	v = \sum_{t=0}^{\infty}\gamma^tr_{t}.
 \]
 To evaluate how good a policy $\pi$ is, we need a measure of performance. A common choice is the expected value of the return over $\pi$ and the initial state distribution $\mu$:
 \[
 	J_\mu^\pi = \mathbf{E}_{\mu,\pi}[v],
 \]
 which we will sometimes call simply 'performance'.
-It is convenient to introduce a new distribution, called discounted stationary distribution or discounted future-state distribution $d_{\mu}^{\pi}$:
+It is convenient to introduce a new distribution, called discounted stationary distribution or discounted future-state distribution $d_{\mu}^{\pi}$ \cite{Sutton1999a}:
 \[
 	d_{\mu}^{\pi}(s) = (1-\gamma)\sum_{t=0}^{\infty}\gamma^t\Pr(s_t=s\mid\pi,\mu),
 \] 
-such that $d_{\mu}^{\pi}(s)$ is the probability of being in state $s$ at any time step, after weighting time steps according to the discount factor. 
+such that $d_{\mu}^{\pi}(s)$ is the probability of having $s_t = s$, discounted with $\gamma^t$, in the limit $t\to\infty$.  
 The stationary distribution allows to better define the expected return $J$ as:
 \[
 	J_\mu^\pi = \int_{\mathcal{S}}d_{\mu}^{\pi}(s)\int_{\mathcal{A}}\pi(a \mid s)\mathcal{R}(s,a)\mathrm{d}a\mathrm{d}s.
@@ -63,7 +63,7 @@ The \ac{RL} problem can then be formulated as a stochastic optimization problem:
 \[
 	\pi^* \in \arg\max\limits_{\pi}J(\pi),
 \]
-where $\pi^*$ is the optimal policy. It is well known that when the space of possible policies is unconstrained, every \ac{MDP} admits an optimal policy.
+where $\pi^*$ is the optimal policy. It is well known that when the space of possible policies is unconstrained, every \ac{MDP} admits an optimal policy \cite{Weiss667}.
 
 \subsection{Value functions}
 \paragraph{} %V
@@ -143,12 +143,12 @@ A typical policy update for phase 2 is the greedy policy improvement:
 \[
 	\pi'(s) \in \arg\max\limits_{a \in \mathcal{A}}Q^\pi(s,a),
 \]
-which employs deterministic policies. When the value function $Q^\pi$ can be computed exactly for each state-action pair, policy iteration with greedy policy improvement is guaranteed to converge to an optimal policy.
+which employs deterministic policies. When the value function $Q^\pi$ can be computed exactly for each state-action pair, policy iteration with greedy policy improvement is guaranteed to converge to an optimal policy \cite{Puterman:1979:CPI:2778782.2778787}.
 
 \paragraph{} % Approximate PI
 In most \ac{RL} problems the value function $Q^\pi$ cannot be computed exactly, but can be estimated from samples. Given the sampling nature of the approach, some stochasticity must be included in the policy to ensure sufficient exploration of the state-action space. Several algorithms are known for discrete \ac{MDP}s with reasonably small state and action spaces \cite{Sutton:1998:IRL:551283}. These algorithms are also called tabular, because the value function can be stored in a finite table.
 Tabular algorithms mainly differ for the way the value function is estimated. The two main families are \ac{MC} methods, which are episodic, and \ac{TD} algorithms, which are continuing. 
-Convergence guarantees are available for most of these algorithms.
+Convergence guarantees are available for most of these algorithms \cite{Tsitsiklis02} \cite{sutton1988learning} \cite{Dayan1992} \cite{watkins1992q} \cite{jaakkola1994convergence}.
 
 \paragraph{} %Policy iteration and continous MDPs
 Unfortunately, tabular algorithms cannot be applied to the more general case of continuous \ac{MDP}s. One possibility is to discretize the state and action spaces. This is possible, but not trivial, and may not be suitable for most tasks. Moreover, tabular methods are unfeasible even for discrete \ac{MDP}s when the cardinality of the state-action space is too high.
@@ -187,7 +187,7 @@ where $\alpha \geq 0$ is the learning rate, also called step size. The update is
 Convergence to at least a local optimum is guaranteed by the gradient descent update.
 
 \subsection{Policy Gradient Theorem and eligibility vectors}
-The Policy Gradient Theorem is a result by Sutton \cite{Sutton1999a} that relates the policy gradient to the value function $Q^\pi$:
+The Policy Gradient Theorem is a result by Sutton et al. \cite{Sutton1999a} that relates the policy gradient to the value function $Q^\pi$:
 \begin{theorem}[Continuous version of Theorem 1 from \cite{Sutton1999a}]\label{theo:pgt}
 For any \ac{MDP}
 \[
@@ -221,7 +221,7 @@ We provide here the skeleton of a general policy gradient algorithm:
 Many elements are left open in this schema: how to pick batch size $N$ and step size $\alpha$, what class of policies to use, how to compute the gradient estimate and how to devise a practical stopping condition. In the following sections we will see actual policy gradient algorithms, all adding details or introducing small variations to this general schema.
 
 \subsection{Finite differences}
-Among the oldest policy gradient methods we find finite-difference methods, which arose in the stochastic simulation literature. The idea is to perturb the policy parameter $\vtheta$ many times, obtaining $\vtheta+\Delta\vtheta_1 \dots \vtheta+\Delta\vtheta_K$, and estimate for each perturbation the expected return difference $\Delta\hat{J}_i \simeq J(\vtheta+\Delta\vtheta_i) - J(\vtheta)$, by performing a number of sample trajectories. After collecting all these data, the policy gradient can be estimated by regression as:
+Among the oldest policy gradient methods we find finite-difference methods \cite{Glynn:1990:LRG:84537.84552}, which arose in the stochastic simulation literature. The idea is to perturb the policy parameter $\vtheta$ many times, obtaining $\vtheta+\Delta\vtheta_1 \dots \vtheta+\Delta\vtheta_K$, and estimate for each perturbation the expected return difference $\Delta\hat{J}_i \simeq J(\vtheta+\Delta\vtheta_i) - J(\vtheta)$, by performing a number of sample trajectories. After collecting all these data, the policy gradient can be estimated by regression as:
 \[
 	\gradApp{\vtheta} = (\boldsymbol{\Delta\Theta}^T\boldsymbol{\Delta\Theta})^{-1}\boldsymbol{\Delta\Theta}^T\boldsymbol{\Delta\hat{J}}
 \]
@@ -229,13 +229,13 @@ where $\boldsymbol{\Delta\Theta}^T = [\Delta\vtheta_1,\dots,\Delta\vtheta_K]^T$ 
 
 \subsection{Likelihood Ratio}\label{sec:likelihood_ratio}
 The likelihood ratio approach allows to estimate the gradient even from a single trajectory, without the need of perturbing the parametrization. This method is due to Williams \cite{Williams1992}, but is better understood from the perspective of the later Policy Gradient Theorem \cite{Sutton1999a}.
-By applying trivial differentiation rules to the expression of the policy gradient (see Theorem \ref{theo:pgt}), we have:
+By applying trivial differentiation rules ($\nabla\log f = \frac{\nabla f}{f}$) to the expression of the policy gradient (see Theorem \ref{theo:pgt}), we have:
 \[
 	\gradJ{\vtheta} = \int_{\mathcal{S}}d_{\mu}^{\pi}(s)
 		\int_{\mathcal{A}}\pi_{\vtheta}(a \mid s)\score
 		Q^{\pi}(s,a)\mathrm{d}a\mathrm{d}s.
 \]
-This is known as the REINFORCE trick. The term
+This is known as the REINFORCE \cite{Williams1992} trick. The term
 \[
 	\score = \frac{\nabla_{\vtheta}\pi_{\vtheta}(s,a)}{\pi_{\vtheta}(s,a)}
 \]

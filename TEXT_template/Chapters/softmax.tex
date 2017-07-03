@@ -1,5 +1,9 @@
 \chapter{Extension to Softmax Policies}\label{app:softmax}
 
+In this appendix we show a first attempt at adapting the results on monotonic improvement to the class of Softmax Policies, as suggested in Chapter 6. The impractical nature of this partial results is indicative of the difficulties that characterize this task and could be useful to guide future research on the matter.
+\paragraph{}
+We fist need some Lemmas about specific properties of Softmax policies:
+
 \begin{lemma}\label{lem:softmax_d2}
 If $\pi_{\vtheta}$ is a softmax policy:
 \[
@@ -62,13 +66,15 @@ H(\pi_{\vtheta'},\pi_{\vtheta}) &=
 The rest of the proof is trivial.
 \end{proof}
 
+We can now state the following theorem, which is a variant of Theorem \ref{theo:1}
+
 \begin{theorem}\label{theo:softmax1}
-If $\pi_{\vtheta}$ is a softmax policy and $\vtheta' = \vtheta+\Lambda\gradJ{\vtheta}$:
+For any initial state distribution $\mu$, if $\pi_{\vtheta}$ is a softmax policy and $\vtheta' = \vtheta+\Lambda\gradJ{\vtheta}$:
 \begin{align*}
 \DeltaJ &\geq \gradJ{\vtheta}^T\Lambda\gradJ{\vtheta} \\
 	&-c\norm[1]{\Lambda\gradJ{\vtheta}}^2 -
-	b\norm[1]{\Lambda\gradJ{\vtheta}}
-\end{align*},
+	b\norm[1]{\Lambda\gradJ{\vtheta}},
+\end{align*}
 where
 \begin{align*}
 c &= \frac{6M_{\phi}^2|\mathcal{A}|R}{(1-\gamma)^2}, \\
@@ -76,11 +82,11 @@ b &=  \frac{2\gamma M_{\phi}R}{(1-\gamma)^3}
 \end{align*}
 \end{theorem}
 \begin{proof}
-It's enough to plug the results from Lemmas \ref{lem:softmax_diff} and \ref{lem:softmax_d2} into Lemma 3.1 from \cite{Pirotta2013adaptive}.
+It's enough to plug the results from Lemmas \ref{lem:softmax_diff} and \ref{lem:softmax_d2} into Lemma 3.1 from \cite{NIPS2013_5186}.
 \end{proof}
 
-\begin{corollary}
-The performance lower bound of Theorem \ref{theo:softmax1} is maximized by the following non-scalar step size:
+\begin{corollary}\label{cor:softmax_stepsize}
+The performance lower bound of Theorem \ref{theo:softmax1} is maximized, under the assumption that $b\leq \norm[\infty]{\gradJ{\vtheta}}$, by the following non-scalar step size:
 \[ \alpha_{k}^*=	
 \begin{cases}
 	\frac{1}
@@ -95,5 +101,8 @@ which guarantees the following performance improvement:
 \]
 \end{corollary}
 \begin{proof}
-The proof is similar to the one of Corollary \ref{cor:1}
+The proof is very similar to the one of Corollary \ref{cor:1}, so we omit it.
 \end{proof}
+
+The issue with the result of Corollary \ref{cor:softmax_stepsize} is that, in practical applications, the constant $b$ can easily be larger than $\norm[\infty]{\gradJ{\vtheta}}$. This means that, in many cases, no improvement-guaranteeing step size can be found, not even when the policy gradient is known exactly.
+Although this result cannot be used in practice, it shows that the main difficulty in extending our method to Softmax policies is the characterization of the policy difference measure $\norm[\infty]{\pi_{\vtheta'} - \pi_{\vtheta}}^2$. Further research should be aimed at overcoming or bypassing this issue.
