@@ -1,7 +1,9 @@
 \chapter{Safe Reinforcement Learning:\newline State of the Art}
 The aim of this chapter is to present the state of the art in safe approaches to Reinforcement Learning, also known as conservative or monotonically improving methods. 
 
-\section{Problem definition and motivation}
+In Section \ref{sec:safe_def} we define the policy oscillation problem and provide the motivations behind safe methods. In Section \ref{sec:spi} we describe safe approaches to policy iteration. In Section \ref{sec:spg} we present existing safe policy gradient methods. Finally, in Section \ref{sec:other_safe} we mention other interesting safe approaches to \ac{RL}.
+
+\section{Problem definition and motivation} \label{sec:safe_def}
 \subsection{The policy oscillation problem}
 Safe \ac{RL} algorithms address a problem known as policy oscillation, first studied in the context of approximate policy iteration and not yet fully understood (see for instance \cite{Bertsekas2011api}, \cite{wagner2011reinterpretation}). Policy oscillation affects approximate \ac{RL} algorithms and manifests as a non-monotonic performance $J_\mu(\pi)$ over learning iterations. In parametric methods, a consequence is that the convergence of the parameter vector to a stationary point may not correspond to an increasing performance, but to an oscillating one. Even when the trend of $J_\mu(\pi)$ is generally positive, large oscillations can be unacceptable for some applications.
 Among the main recognized causes of policy oscillation are the entity of approximation errors and the magnitude of policy updates.
@@ -92,7 +94,7 @@ The idea is the following: the original policy $\pi$ is reshaped into:
 which has the same value function (in the absence of estimation error), i.e.\ $V^{\overline{\pi}} = V^\pi$. The negative term in Equation \ref{eq:normalized_q} ensures that $\overline{\pi}$ is a well defined distribution. Introducing a step size $\alpha$ allows to assign higher probability to actions with positive normalized value function $\Delta_\pi$. A conservative choice for $\alpha$ is $\nicefrac{1}{\norm[\infty]{\Delta_\pi}}$, but the authors also propose more practical alternatives.
 The resulting algorithm is called \ac{LPI}. The authors show that the performance improvement guarantee of \ac{LPI} is better than the one of \ac{CPI}, at the same time allowing for bigger policy updates, hence faster convergence.
 
-\section{Safe Policy Gradient}
+\section{Safe Policy Gradient}\label{sec:spg}
 \subsection{The role of the step size}
 Most of the safe policy gradient methods that have been proposed so far focus on the selection of the proper step size $\alpha$.
 The step size regulates the magnitude of the parameter updates. Although the relationship between $\Delta\vtheta$ and the actual change in the policy is parametrization-dependent (at least for vanilla policy gradients) and may be non-trivial, in general small step sizes produce small changes in the policy, hence small performance oscillations. However, reducing the step-size also reduces the convergence speed, which is a major drawback in most applications. 
@@ -127,7 +129,7 @@ Although the step size is crucial in controlling policy oscillation, we saw that
 
 
 
-\section{Other Safe Methods}
+\section{Other Safe Methods}\label{sec:other_safe}
 In this section we describe other safe approaches to reinforcement learning.
 
 \subsection{Trust Region Policy Optimization}

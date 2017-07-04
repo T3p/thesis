@@ -1,9 +1,10 @@
 \chapter{Adaptive Batch Size for Policy Gradient}\label{chap:main}
 In this chapter we propose a new safe approach to policy gradient. As mentioned in Section \ref{sec:beyond}, the safe policy gradient algorithms that has been proposed so far in the literature have focused on the choice of the optimal step size, while, to the best of our knowledge, the choice of the batch size has been neglected. We propose a method to jointly optimize both meta-parameters in a way that is both safe and cost-sensitive. We focus on the class of Gaussian policies, which is the most commonly used to address control problems with continuous action spaces.
 
+In Section \ref{sec:main_overview} we outline the whole procedure. In Section \ref{sec:acd} we generalize and improve an existing result on the adaptive step size. Building on this results, in Section \ref{sec:batchsize} we derive the optimal batch size and provide the jointly optimizing algorithm and some variants.
 
 
-\section{Overview}
+\section{Overview}\label{sec:main_overview}
 In this section we provide an overview of the approach that we will follow to obtain the adaptive batch size, justifying the main choices.
 Although our focus is on the batch size, the step size is still a fundamental parameter in controlling policy oscillation phenomena. For this reason, we start from an optimal step-size formulation to jointly optimize both meta-parameters. To do so, we improve an existing adaptive step-size method \cite{NIPS2013_5186}. We then find the best batch size to use with such an optimal step size.
 However, it is not trivial to define a proper objective function for this goal. In the case of the step size, performance improvement $\DeltaJ$ is representative both of safety and of convergence speed. The batch size $N$, instead, affects learning times in an indirect way: larger batches require more time to collect samples, but this is not captured by $\DeltaJ$. What we need is an objective that is sensitive to the cost of collecting sample trajectories, \ie a cost-sensitive objective function. We decide to employ the following one:
@@ -15,7 +16,7 @@ Is following this approach that we derive the adaptive batch size, finally provi
 
 
 
-\section{Adaptive Coordinate Descent}
+\section{Adaptive Coordinate Descent}\label{sec:acd}
 In this section we improve the adaptive step-size method for Gaussian policies from Pirotta et al. \cite{NIPS2013_5186}, which have been described in Section \ref{sec:adaptive_ss}. We follow the same approach, with the major variant of adopting a non-scalar step size. This allows to control the update of the single policy parameter components independently, potentially allowing for better optimization. Indeed, we are able to show that this approach yields an improvement over the performance guarantee of \cite{NIPS2013_5186}. Rather surprisingly, this result is achieved with a coordinate descent update, where only one component at a time is updated. 
 We first stick to the theoretical setting in which the gradient is known exactly, then we take into account also the gradient estimation error.
 
