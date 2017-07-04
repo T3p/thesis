@@ -403,13 +403,16 @@ N \geq N_0 := \left(\frac{d_{\delta} + \sqrt{d_{\delta}^2 + 4f_{\delta}\norm[\in
 \right)^2,
 \]
 so $N_0$ can be used as the starting point of the linear search.
-Computing the derivative w.r.t $N$ we obtain two factors for the numerator:
+Computing the derivative w.r.t $N$ we obtain two distinct factors for the numerator:
 
+\begin{scriptsize}
 \begin{align*}
 &\left(d_{\delta}\sqrt{N}+f_{\delta} - \norm[\infty]{\gradApp{\vtheta}}N\right)^3, \\
 &\left(2d_{\delta}^2N+5d_{\delta}f_{\delta}\sqrt{N}+3d_{\delta}\norm[\infty]{\gradApp{\vtheta}}N^{\nicefrac{3}{2}} +3f_{\delta}^2+6f\norm[\infty]{\gradApp{\vtheta}}N-\norm[\infty]{\gradApp{\vtheta}}^2N^2\right).
 \end{align*}
-The left first one gives again $N_0$, which is the global minimum. By applying Descartes' rule of signs to the other one, seen as a polynomial in $\sqrt{N}$, we see that it gives just one root. The exact expression of this maximum is too big to be reported and too long to code, but its uniqueness, together with the fact that $\Upsilon_{\delta}$ goes to $0$ as N goes to infinity, justifies the following methodology: to find $N^*$, start from $N_0$ and stop as soon as the value of the cost function $\Upsilon(\Lambda^*,N)$ begins to decrease.
+\end{scriptsize}
+
+The first one gives again $N_0$, which is the global minimum. By applying Descartes' rule of signs to the other one, seen as a polynomial in $\sqrt{N}$, we see that it gives just one root. The exact expression of this maximum is too big to be reported and too long to code, but its uniqueness, together with the fact that $\Upsilon_{\delta}$ goes to $0$ as N goes to infinity, justifies the following methodology: to find $N^*$, start from $N_0$ and stop as soon as the value of the cost function $\Upsilon(\Lambda^*,N)$ begins to decrease.
 \paragraph{}
 Note also that the optimal step size is no longer constant: it can be computed with the expression given in Corollary \ref{cor:3} by setting $\epsilon := \epsilon(N^*)$.
 Finally, as for the Hoeffding's bound, the range $\mathbf{R}$ can be upper bounded exactly or estimated from samples.
