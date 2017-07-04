@@ -159,7 +159,7 @@ where both $\boldsymbol{s}$ and $\boldsymbol{a}$ are vectors of size $m$, $C_0$ 
 \[
 \vtheta = \begin{bmatrix}
 \theta_{11} & \theta_{12} \\
-\theta_{21} & \theta_{22}
+\theta_{21} & \theta_{22}.
 \end{bmatrix}
 \]
 Similarly to the one-dimensional case, we set $C_0=\boldsymbol{0}$ without loss of generality. Matrices $Q$ and $R$ can be used to define different objectives.
@@ -183,11 +183,64 @@ In particular, in our experiments, we use $\sigma_1 = \sigma_2 = 1$ and $\gamma 
 \]
 with corresponding expected performance $J_\mu(\vtheta^*) \simeq -422.616$. The fact that $\vtheta$ is diagonal is due precisely to the independence of the two one-dimensional \ac{LQG} tasks.
 
-We test our adaptive algorithm on this task. We use the G(PO)MDP gradient estimator with optimal baseline, Bernstein's bound with empirical range and $\delta=0.95$.
+We first use this task to provide empirical evidence to the claim of Corollary \ref{cor:2}, \ie to show that the adaptive step size that we proposed is an improvement over the existing result that we generalized. We run two simulations, one with the scalar adaptive step size $\hat{\alpha}^*$ proposed in \cite{NIPS2013_5186}, which we report below, and one with the non-scalar adaptive step size $\Lambda^*$ of Corollary \ref{cor:3}:
+
+\[
+\hat{\alpha}^* =
+	\frac{(1-\gamma)^3\sqrt{2\pi}\sigma^3
+		\norm[2]{\gradDown{\vtheta}}^2}
+		{(\gamma\sqrt{2\pi}\sigma)+2(1-\gamma)|\mathcal{A}|)RM_{\phi}^2
+		\norm[1]{\gradUp{\vtheta}}^2}.	
+\]
+
+In both the simulations we use the G(PO)MDP gradient estimator with variance-minimizing baseline, Chebyshev's bound, $\delta=0.95$ and fixed batch size $N=2000$. We start from $\vtheta = \underline{0}$ and stop after a total of 30 million trajectories. The selected batch size happens to satisfy Assumption \ref{assum:3} for the duration of the experiment. This is necessary to preserve the performance improvement guarantee in both settings.
+Figure \ref{fig:12} shows the expected performance over trajectories for the two experiments.
+
+\begin{figure}[h!]
+\includegraphics[width=\textwidth,left]{Images/compare_stepsize.pdf}
+\caption[Comparison of the performance of the scalar step size and the non-scalar step size.]{Expected performance over sample trajectories in the two-dimensional \ac{LQG} task, using G(PO)MDP, Chebyshev bound, $\delta=0.95$ and fixed $N=2000$. The performance of the adaptive non-scalar step size proposed in this work is compared with the scalar step size from \cite{NIPS2013_5186}, of which the former is a generalization.}
+\label{fig:12}
+\end{figure}
+
+In both cases, an improvement ratio of 100\% was achieved.
+Results on performance show that, indeed, the non-scalar step size outperforms its scalar counterpart.
+To get a better insight on how this happens, it is useful to compare the trend of the adaptive step size in the two cases. Figure \ref{fig:13} compares the trend of $\hat{\alpha}^*$ and $\norm{\Lambda^*}$.
+
+\begin{figure}[h!]
+\includegraphics[width=\textwidth,left]{Images/stepsize.pdf}
+\caption[Comparison of the trend of scalar and non-scalar step size.]{Magnitude of the step size over learning iterations. The adaptive non-scalar step size proposed in this work is compared with the adaptive scalar step size from \cite{NIPS2013_5186}, of which the former is a generalization.}
+\label{fig:13}
+\end{figure}
+
+We can see that, although it decreases faster, the non-scalar step size dominates (in magnitude) the scalar one. Basically, the algorithm from \cite{NIPS2013_5186} needs to be more conservative, since more parameters are updated at each learning iteration and their penalties on the guaranteed improvement sum up.
+
+\paragraph{}
+Another interesting difference between the two methods is in the shape of the learned policy parameter $\theta$. In any stochastic policy gradient methods, the gradient components relative to $\theta_{12}$ and $\theta_{21}$ are small if compared to the other two, but not zero. This is due to noise and the result is that, even by starting from $\theta = \underline{0}$, the learned parameter will not be a diagonal matrix like the optimal one. On the contrary, a coordinate descent method like ours will never choose to update $\theta_{12}$ or $\theta_{21}$, because the gradient components associated to $\theta_{11}$ and $\theta_{22}$ are much larger. Starting from $\theta = \underline{0}$, a diagonal matrix is obtained.
+Although this does not affect performance significantly, it shows how our algorithm is able to completely avoid useless changes in the current policy, which are potential causes of oscillation. In particular, the final parameter obtained with the scalar step size $\hat{\alpha}^*$ was:
+
+\[
+\vtheta = \begin{bmatrix}
+	-0.014676 & 1.4e-06 \\
+	 1.7e-06  & -0.013678
+	\end{bmatrix},
+\]
+
+while, with our non-scalar step size $\Lambda^*$, we obtained:
+\[
+\vtheta = \begin{bmatrix}
+	-0.0275 & 0 \\
+	 0  & -0.0274
+	\end{bmatrix},
+\]
+
+which is indeed diagonal.
+
+\paragraph{}
+We then test our adaptive batch-size on the same task. We use the G(PO)MDP gradient estimator with optimal baseline, Bernstein's bound with empirical range and $\delta=0.95$.
 Figure \ref{fig:10} shows the evolution of the batch size over the learning process in the adaptive case.
 
 \begin{figure}[h!]
-\includegraphics[width = \textwidth,left]{Images/lqg2d_batchsize.pdf}
+\includegraphics[width = \textwidth,left]{Images/lqg2d_batchsize_landscape.pdf}
 \caption[Adaptive batch size over learning iterations in the two-dimensional LQG task.]{Adaptive batch size over learning iterations for the two-dimensional \ac{LQG} task. G(PO)MDP gradient estimator with optimal baseline, Bernstein's bound with empirical range and $\delta=0.95$ were used.}
 \label{fig:10}
 \end{figure}
@@ -202,10 +255,10 @@ We compare the performance of our algorithm with the one of vanilla policy gradi
 \end{figure}
 
 \begin{table}[h!]
-\caption[Average performance and improvement ratio for different simulations on the two-dimensional LQG task.]{Average performance and improvement ratio for different simulations on the two-dimensional \ac{LQG} task, using the G(PO)MDP gradient estimator with optimal baseline. The adaptive batch size is computed using Bernstein's bound with empirical range and $\delta=0.95$. The fixed batch sizes are used in conjunction with $\alpha=1e-6$.}
+\caption[Average performance and improvement ratio for different simulations on the two-dimensional LQG task.]{Average performance and improvement ratio for different simulations on the two-dimensional \ac{LQG} task, using G(PO)MDP. The adaptive batch size is computed using Bernstein's bound with empirical range and $\delta=0.95$. The fixed batch sizes are used in conjunction with $\alpha=1e-6$.}
 \label{tab:3}
 \centering
-\begin{widetable}{\columnwidth}{*{7}{l}} %{@{}lcc@{}} 
+\begin{widetable}{\columnwidth}{*{7}{c}} %{@{}lcc@{}} 
 \toprule
 N & $\overline{\Upsilon}$ & Improvement Ratio \\
 \midrule
@@ -219,21 +272,3 @@ Adaptive & -20.50 & 100\% \\
 Results show how a large, fixed batch size can badly affect the convergence rate. Our algorithm is able to outperform the $N=1000$ case by safely employing smaller batch sizes at the beginning of the learning process, turning to larger ones only when it is necessary.
 For this task, a small batch size, such as $N=100$, yields a better average performance than our algorithm, but it introduces oscillation, witnessed by a less-than-one improvement ratio.
 These results show how an adaptive batch size, such as the one employed by our algorithm, is able to guarantee monotonic improvement without needlessly sacrificing convergence speed.
-\paragraph{}
-Another interesting difference between our method and vanilla policy gradient is in the shape of the learned policy parameter $\theta$. In any stochastic policy gradient methods, the gradient components relative to $\theta_{12}$ and $\theta_{21}$ are small if compared to the other two, but not zero. This is due to noise and the result is that, even by starting from $\theta = \underline{0}$, the learned parameter will not be a diagonal matrix like the optimal one. On the contrary, a coordinate descent method like ours will never choose to update $\theta_{12}$ or $\theta_{21}$, because the gradient components associated to $\theta_{11}$ and $\theta_{22}$ are much larger. Starting from $\theta = \underline{0}$, a diagonal matrix is obtained.
-Although this does not affect performance significantly, it shows how our algorithm is able avoid useless changes in the current policy, which are potential causes of oscillation. To support this analysis with real data, Table \ref{tab:4} shows the final value of $\vtheta$ for the usual three simulations.
-
-\begin{table}[h!]
-\caption[Final value of the policy parameter $\vtheta$ for different simulations on the two-dimensional LQG task.]{Final value of the policy parameter $\vtheta$,after a total of 30 million trajectories, for different simulations on the two-dimensional \ac{LQG} task, using the G(PO)MDP gradient estimator with optimal baseline. The adaptive batch size is computed using Bernstein's bound with empirical range and $\delta=0.95$. The fixed batch sizes are used in conjunction with $\alpha=1e-6$. The elements of $\vtheta$ are reported in lexicographical order.}
-\label{tab:4}
-\centering
-\begin{widetable}{\columnwidth}{*{7}{l}} %{@{}ll@{}} 
-\toprule
-N & $\vtheta$ \\
-\midrule
-Adaptive & [-0.403, 0; 0, -0.403] \\
-100 & [ -0.6, -1e-4; 1e-4, -0.6] \\
-1000 & [-0.21, -1.7e-5; -3.3e-5, -0.21] \\
-\bottomrule
-\end{widetable}
-\end{table}
