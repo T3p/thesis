@@ -3,7 +3,8 @@
 In this chapter we conduct some experiments to test our safe method. We compare the different variants of our algorithm to observe their performance in practice. We also compare our method with older or more common approaches to see how much the theoretical improvements obtained in the previous chapter translate into better practical results.
 
 In Section \ref{sec:lqg1d} we use a simple simulated control task, one-dimensional \ac{LQG}, to compare the different variants of our algorithm.
-In Section \ref{sec:lqg2d} we use a two-dimensional variant of the same problem to show the advantages of our method over older approaches. 
+In Section \ref{sec:lqg2d} we use a two-dimensional variant of the same problem to show the advantages of our method over older approaches.
+In Section \ref{sec:cartpole} we use a continuous action variant of the popular cart-pole task to improve a baseline policy after a change has been introduced to the environment, to show the practical advantages of our method.
 
 \section{One-Dimensional LQG}\label{sec:lqg1d}
 In this section we test the proposed methods on the one-dimensional \ac{LQG} problem \cite{4867}. We use this task as a testing ground because it is simple, all the constants involved in our bounds can be computed exactly, and the optimal parameter $\theta^*$ is available as a reference.
@@ -251,7 +252,7 @@ We compare the performance of our algorithm with the one of vanilla policy gradi
 
 \begin{figure}[h!]
 \includegraphics[width = \textwidth]{Images/lqg2d.pdf}
-\caption[Expected performance over learning iterations in the two-dimensional LQG task.]{Expected performance over learning iterations in the two-dimensional \ac{LQG} task. The adaptive algorithm with Bernstein's bound and $\delta=0.95$ is compared with vanilla policy gradient with fixed $N=100,1000$ and $\alpha=1e-6$.}
+\caption[Expected performance over sample trajectories in the two-dimensional LQG task.]{Expected performance over sample trajectories in the two-dimensional \ac{LQG} task. The adaptive algorithm with Bernstein's bound and $\delta=0.95$ is compared with vanilla policy gradient with fixed $N=100,1000$ and $\alpha=1e-6$.}
 \label{fig:11}
 \end{figure}
 
@@ -273,3 +274,62 @@ Adaptive & -20.50 & 100\% \\
 Results show how a large, fixed batch size can badly affect the convergence rate. Our algorithm is able to outperform the $N=1000$ case by safely employing smaller batch sizes at the beginning of the learning process, turning to larger ones only when it is necessary.
 For this task, a small batch size, such as $N=100$, yields a better average performance than our algorithm, but it introduces oscillation, witnessed by a less-than-one improvement ratio.
 These results show how an adaptive batch size, such as the one employed by our algorithm, is able to guarantee monotonic improvement without needlessly sacrificing convergence speed.
+
+\section{Cart-Pole}
+In this section we test our algorithm on a more challenging simulated control task to give an idea of how it could be useful in practice. We use our algorithm to improve an existing policy after a change has been introduced in the environment, to highlight the advantages of our safe approach.
+
+The cart-pole task is a popular \ac{RL} benchmark problem, of which we use a continuous action variant. An inverted pendulum, the pole, is attached to a cart. A force can be applied to the cart, in order to maintain the pole in a vertical position as long as possible. If the pole becomes too much inclined or the cart goes too far to the left or to the right, the task ends.
+
+In our setting, the cart has a mass of $1Kg$, the pole is $1m$ long and has a mass of $0.1Kg$.
+The agent's state is the tuple:
+\[
+	\boldsymbol{s}_t = [x,\dot{x},\beta,\dot{\beta}],
+\]
+where $x$ is the position of the cart, $\dot{x}$ is the velocity of the cart, $\beta$ is the angle that the pole forms with the vertical and $\dot{\beta}$ is the angular velocity of the pole. The state is initialized at random in a small neighborhood of $\underline{0}$.
+The action is scalar:
+\[
+	a_t \in [-10,10],
+\]
+and represents the magnitude of the force applied horizontally to the cart, in newtons.
+A constant reward of $1$ is obtained at each time step, such as longer episodes yield better performance. The trajectory has a maximum length of $H=200$ time steps, but it ends as soon as $\beta \notin [-41.8\degree,41.8\degree]$ or $x \notin [-2.4m, 2.4m]$.
+
+We use a Gaussian policy:
+\[
+	a_t \sim \mathcal{N}(\vtheta^T\boldsymbol{s}_t,\sigma),	
+\]
+with $\sigma=1$ and starting from $\vtheta=\underline{0}$.
+
+\paragraph{}
+We first learn a good policy with a vanilla policy gradient algorithm, using the G(PO)MDP gradient estimator with variance-minimizing baseline, fixed step size $\alpha=0.01$ and batch size $N=4000$. We stop once an average performance of $J_\mu(\vtheta) = 195$ over the batch is achieved. This result is obtained in $72$ iterations. The obtained policy will be referred to as baseline policy.
+
+At this point we introduce a change in the environment, by doubling the length of the pole, keeping its mass constant. If the baseline policy is used in this new setting, the performance immediately drops. Instead, we try to adapt to the change by learning a new policy. This is representative of the scenario presented in Chapter \ref{chap:intro}, where an available policy must be improved to adapt to small changes in the environment.
+
+We run two simulations: the first with the same algorithm used to learn the baseline policy, the second with our adaptive algorithm, using Bernstein's bound with empirical range and $\delta=0.95$.
+Figure \ref{fig:14} shows the performance over trajectories of the two approaches (average performance over the batch is used as representative for all the trajectories in the batch), while Table \ref{tab:4} reports average performance and improvement ratio for the two cases. Note that, since the exact value of the expected performance is not available for this task, we are not able to isolate true performance oscillation from noise due to stochasticity in the environment and in the policy itself. However, the improvement ratio computed on the average performance is still indicative of how steadily the policy is improving.
+
+\begin{figure}[h!]
+\includegraphics[width = \textwidth]{Images/cartpole.pdf}
+\caption[Expected performance over sample trajectories in the cart-pole task.]{Expected performance over sample trajectories in the modified cart-pole task. The adaptive algorithm with Bernstein's bound and $\delta=0.95$ is compared with vanilla policy gradient with fixed $N=4000$ and $\alpha=1e-2$.}
+\label{fig:14}
+\end{figure}
+
+\begin{table}[h!]
+\caption[Average performance and improvement ratio for different simulations on the modified cart-pole task.]{Average performance and improvement ratio for different simulations in the modified cart-pole task, using G(PO)MDP. The adaptive batch size is computed using Bernstein's bound with empirical range and $\delta=0.95$. The fixed batch size is used in conjunction with $\alpha=1e-2$.}
+\label{tab:4}
+\centering
+\begin{widetable}{\columnwidth}{*{7}{c}} %{@{}lcc@{}} 
+\toprule
+N & $\overline{\Upsilon}$ & Improvement ratio\\ 
+\midrule
+Adaptive & 193.12 & 53.01\% \\
+4000 & 192.86 & 44.76\% \\
+\bottomrule
+\end{widetable}
+\end{table}
+
+Results show how the non-safe approach, although reaching a good performance very quickly, is subject to heavy oscillations, which affect the long term performance. To get the best from this algorithm, a human expert should stop the learning process at the right moment. Instead, our safe algorithm, although taking much longer to reach a good performance, is subject to less oscillations and is able to maintain it indefinitely. This allows for a more autonomous agent, that can react to changes in the environment without any human intervention.
+
+Once again, examining the learned parameters leads to interesting insights: our algorithm never updates the components of $\vtheta$ corresponding to $\beta$ and $\dot{\beta}$, evidently because they are not relevant in adjusting to the particular change that was introduced to the environment. As already observed in Section \ref{sec:lqg2d}, the coordinate descent approach is able to completely avoid some unnecessary sources of oscillation.
+
+\paragraph{}
+Although definitely artificial, the cart-pole example shows the possible advantages of employing a safe policy gradient method to a realistic problem, and highlights the main strengths of our proposed algorithm.
