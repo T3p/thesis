@@ -16,8 +16,8 @@ To explain the phenomenon in more detail, we restrict our analysis to policy gra
 \subsection{The need for safe methods}
 Both of the policy oscillation causes that have been described pose a trade-off between monotonic improvement and speed of convergence. Using small step sizes results in more conservative policy updates, reducing performance oscillation. On the other hand, a small step size can heavily affect convergence speed. Similarly, computing more accurate policy gradient estimates typically requires a large number of samples. Even if the batch size does not affect directly the number of iterations to convergence, it can affect the actual learning time, especially when collecting sample trajectories is time-wise expensive. The resulting trade-off is similar to the well known exploration-exploitation dilemma, and is particularly evident when learning is performed on real systems. In a simulated task with no time limitations, neither convergence speed nor oscillation are major issues, unless convergence is compromised. Instead, in more realistic scenarios, oscillation itself may cause the following problems:
 \begin{itemize}
-\item Dangerous behavior: low performance peaks may correspond to large deviations from the initial policy. Even if the initial policy has been designed to be safe, such deviations may result in behavior able to damage the system.
-\item Poor long-term performance: Consider the scenario in which learning is performed simultaneously with production, e.g.\ to automatically adjust an existing optimal policy to small changes in the environment, either in a real-time manner or by temporary stopping production. Oscillations in the per-episode performance are paid in term of long-term performance when they are not justified by a relevant enough overall policy improvement. This loss is similar to the concept of regret caused by exploration.
+\item Dangerous behavior: low performance peaks may correspond to large deviations from the initial policy. Even if the initial policy has been designed to be safe, such deviations may result in behaviors able to damage the system.
+\item Poor long-term performance: Consider the scenario in which learning is performed simultaneously with production, e.g.\ to automatically adjust an existing optimal policy to small changes in the environment, either in a real-time manner or by temporary stopping production. Oscillations in the per-episode performance are paid in terms of long-term performance when they are not justified by a relevant enough overall policy improvement. This loss is similar to the concept of regret caused by exploration.
 \item Selection of suboptimal policies: if the learning process has a fixed duration or must be stopped for some reason, oscillations may lead to the selection of a policy that is not the best seen so far, or is even worse than the initial policy. In highly stochastic environments it can be very difficult to manually reject such sub-par policies, and testing all the policies seen so far may be prohibitively expensive.
 \end{itemize} 
 From all these problems comes the necessity of policy updates that are monotonically increasing.
@@ -95,6 +95,8 @@ which has the same value function (in the absence of estimation error), i.e.\ $V
 The resulting algorithm is called \ac{LPI}. The authors show that the performance improvement guarantee of \ac{LPI} is better than the one of \ac{CPI}, at the same time allowing for bigger policy updates, hence faster convergence.
 
 \section{Safe Policy Gradient}\label{sec:spg}
+In this section we present the state of the art in safe policy gradient methods and suggest a possible direction for further developments.
+
 \subsection{The role of the step size}
 Most of the safe policy gradient methods that have been proposed so far focus on the selection of the proper step size $\alpha$.
 The step size regulates the magnitude of the parameter updates. Although the relationship between $\Delta\vtheta$ and the actual change in the policy is parametrization-dependent (at least for vanilla policy gradients) and may be non-trivial, in general small step sizes produce small changes in the policy, hence small performance oscillations. However, reducing the step-size also reduces the convergence speed, which is a major drawback in most applications. 
@@ -108,24 +110,24 @@ J_{\mu}(\vtheta')-J_{\mu}(\vtheta) \geq \alpha\norm[2]{\gradJ{\vtheta}}^2 - \\
 	\alpha^2\frac{RM_\phi^2\norm[1]{\gradJ{\vtheta}}^2}{(1-\gamma)^2\sigma^2}
 	\left(\frac{|\mathcal{A}|}{\sqrt{2\pi}\sigma} + \frac{\gamma}{2(1-\gamma)}\right),
 \end{multline}
-where $M_\phi$ is a bound on state features $\phi(s)$.
+where $\vtheta' = \vtheta+\alpha\gradJ{\vtheta}$ and $M_\phi$ is a bound on state features $\phi(s)$.
 At each learning iteration, given $\gradJ{\vtheta}$, the step size that optimizes this bound can be computed:
 \[
 \alpha^* = \frac{\norm[2]{\gradJ{\vtheta}}^2(1-\gamma)^3\sigma^3\sqrt{2\pi}}
-	{RM_\phi^2\norm[1]{\gradJ{\vtheta}}^2(2|\mathcal{A}|(1-\gamma)+\sqrt{2\pi}\sigma\gamma)}
+	{RM_\phi^2\norm[1]{\gradJ{\vtheta}}^2(2|\mathcal{A}|(1-\gamma)+\sqrt{2\pi}\sigma\gamma)}.
 \] 
 Updating the policy parameters with $\alpha^*$ guarantees a constant performance improvement:
 \[
 J_{\mu}(\vtheta')-J_{\mu}(\vtheta) \geq
 	\frac{\norm[2]{\gradJ{\vtheta}}^4(1-\gamma)^3\sigma^3\sqrt{2\pi}}
-	{2RM_\phi^2\norm[1]{\gradJ{\vtheta}}^2(2|\mathcal{A}|(1-\gamma)+\sqrt{2\pi}\sigma\gamma)}
+	{2RM_\phi^2\norm[1]{\gradJ{\vtheta}}^2(2|\mathcal{A}|(1-\gamma)+\sqrt{2\pi}\sigma\gamma)}.
 \]
 When the policy gradient cannot be computed exactly, monotonicity can be guaranteed with high probability, depending on the entity of the estimation error. The authors provide methods, based on Chebyshev's inequality, to select the number of samples necessary to achieve a desired improvement probability $\delta$, for the cases of REINFORCE and PGT gradient estimators.
 \paragraph{} % Lipschitz
-The same authors \cite{pirotta2015policy} follow a similar approach to derive tighter bounds for the case of Lipschitz-continuous \ac{MDP}s. A Lipschitz \ac{MDP} is a \ac{MDP} with Lipschitz-continuous transition model $\mathcal{P}$ and reward function $\mathcal{R}$. We omit the mathematical details, but intuitively the Lipschitz hypothesis is reasonable when the dynamics of the environment are sufficiently smooth. Starting from this hypothesis, and constraining the policy to be Lipschitz-continuous as well, the authors are able to prove the Lipschitz continuity of the policy gradient $\gradJ{\vtheta}$ and provide an efficient algorithm to compute an optimal step size based on this fact.
+The same authors \cite{pirotta2015policy} follow a similar approach to derive tighter bounds for the case of Lipschitz-continuous \ac{MDP}s. A Lipschitz \ac{MDP} is an \ac{MDP} with Lipschitz-continuous transition model $\mathcal{P}$ and reward function $\mathcal{R}$. We omit the mathematical details, but intuitively the Lipschitz hypothesis is reasonable when the dynamics of the environment are sufficiently smooth. Starting from this hypothesis, and constraining the policy to be Lipschitz-continuous as well, the authors are able to prove the Lipschitz continuity of the policy gradient $\gradJ{\vtheta}$ and provide an efficient algorithm to compute an optimal step size based on this fact.
  
 \subsection{Beyond the step size}\label{sec:beyond}
-Although the step size is crucial in controlling policy oscillation, we saw that also the entity of the estimation error plays a role. In likelihood ratio methods, the variance of the policy gradient estimate $\gradApp{\vtheta}$ can be limited by averaging over a large number of trajectories. In this case, the batch size $N$ can affect policy improvement. In \cite{NIPS2013_5186} the effect of $N$ is recognized but not exploited: it is still a meta-parameter that must be selected beforehand by a human expert. As in the case of the step size, line search algorithm are usually too expensive given the time that is typically required to collect a sample trajectory. For the same reason, an adaptive batch size should take into consideration the cost of collecting more samples, which cannot be neglected in practical applications. In the following chapter we address this problems to derive a cost-sensitive adaptive batch size that guarantees monotonic improvement.
+Although the step size is crucial in controlling policy oscillation, we saw that also the entity of the estimation error plays a role. In likelihood ratio methods, the variance of the policy gradient estimate $\gradApp{\vtheta}$ can be limited by averaging over a large number of trajectories. In this case, the batch size $N$ can affect policy improvement. In \cite{NIPS2013_5186} the effect of $N$ is recognized, but not exploited: it is still a meta-parameter that must be selected beforehand by a human expert. As in the case of the step size, line search algorithm are usually too expensive given the time that is typically required to collect a sample trajectory. For the same reason, an adaptive batch size should take into consideration the cost of collecting more samples, which cannot be neglected in practical applications. In the following chapter we address this problems to derive a cost-sensitive adaptive batch size that guarantees monotonic improvement.
 
 
 

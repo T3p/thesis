@@ -9,7 +9,7 @@ If $\pi_{\vtheta}$ is a softmax policy:
 \[
 \left| \frac{\partial^2\pi_{\vtheta}(a \mid s)}
 	{\partial\theta_i\partial\theta_j}\right| \leq
-	6M_{\phi}^2
+	6M_{\phi}^2.
 \]
 \end{lemma}
 \begin{proof}
@@ -19,7 +19,7 @@ If $\pi_{\vtheta}$ is a softmax policy:
 		&= \left| \pi_{\vtheta}(a\mid s)\left(
 		\phi_j(s,\cdot)\phi_i(s,\cdot) -  \phi_i(s,\cdot)\expected{a'}{\pi_{\vtheta}}{\phi_j(s,\cdot)} - \phi_j(s,\cdot)\expected{a'}{\pi_{\vtheta}}{\phi_i(s,\cdot)}\right.\right. \\
 		&\left.\left.+ 2\expected{a'}{\pi_{\vtheta}}{\phi_i(s,\cdot)}\expected{a'}{\pi_{\vtheta}}{\phi_j(s,\cdot)} - \expected{a'}{\pi_{\vtheta}}{\phi_i(s,\cdot)\phi_j(s,\cdot)}\right)\right| \\
-		\leq 6M_\phi^2
+		\leq 6M_\phi^2.
 \end{align*}
 \end{proof}
 
@@ -28,7 +28,7 @@ If $\pi_{\vtheta}$ is a softmax policy and $\vtheta' = \vtheta+\Lambda\gradJ{\vt
 \[
 \pi_{\vtheta'}(a \mid s) - \pi_{\vtheta}(a \mid s) \geq 
 	\nabla_{\vtheta}\pi_{\vtheta}(a \mid s)^T\Lambda\gradJ{\vtheta} -
-	6M_{\phi}^2\norm[1]{\Lambda\gradJ{\vtheta}}^2
+	6M_{\phi}^2\norm[1]{\Lambda\gradJ{\vtheta}}^2.
 \]
 \end{lemma}
 \begin{proof}
@@ -38,7 +38,7 @@ It follows from the application of Lemma \ref{lem:softmax_d2} to Taylor's expans
 \begin{lemma}\label{lem:softmax_infnorm}
 If $\pi_{\vtheta}$ is a softmax policy and $\vtheta' = \vtheta+\Lambda\gradJ{\vtheta}$:
 \[
-	\norm[\infty]{\pi_{\vtheta'} - \pi_{\vtheta}}^2 \leq 4M_\phi\norm[1]{\Lambda\gradJ{\vtheta}}
+	\norm[\infty]{\pi_{\vtheta'} - \pi_{\vtheta}}^2 \leq 4M_\phi\norm[1]{\Lambda\gradJ{\vtheta}}.
 \]
 \end{lemma}
 \begin{proof}
@@ -61,7 +61,7 @@ H(\pi_{\vtheta'},\pi_{\vtheta}) &=
 	&\leq \expected{a}{\pi_{\vtheta'}}{
 	\norm[1]{\Delta\vtheta}M_\phi + \log\frac{\cancel{\sum_{a'\in\mathcal{A}}e^{\vtheta^T\phi(s,a')}}}
 	{e^{-\norm[1]{\Delta\vtheta}M_\phi}\cancel{\sum_{a'\in\mathcal{A}}e^{\vtheta^T\phi(s,a')}}}} \\
-	&= 2\norm[1]{\Delta\vtheta}M_\phi = 2M_\phi\norm[1]{\Lambda\gradJ{\vtheta}} 	
+	&= 2\norm[1]{\Delta\vtheta}M_\phi = 2M_\phi\norm[1]{\Lambda\gradJ{\vtheta}}. 	
 \end{align*}
 The rest of the proof is trivial.
 \end{proof}
@@ -78,7 +78,7 @@ For any initial state distribution $\mu$, if $\pi_{\vtheta}$ is a softmax policy
 where
 \begin{align*}
 c &= \frac{6M_{\phi}^2|\mathcal{A}|R}{(1-\gamma)^2}, \\
-b &=  \frac{2\gamma M_{\phi}R}{(1-\gamma)^3}
+b &=  \frac{2\gamma M_{\phi}R}{(1-\gamma)^3}.
 \end{align*}
 \end{theorem}
 \begin{proof}

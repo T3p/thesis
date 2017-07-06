@@ -1,5 +1,5 @@
 \chapter{Adaptive Batch Size for Policy Gradient}\label{chap:main}
-In this chapter we propose a new safe approach to policy gradient. As mentioned in Section \ref{sec:beyond}, the safe policy gradient algorithms that has been proposed so far in the literature have focused on the choice of the optimal step size, while, to the best of our knowledge, the choice of the batch size has been neglected. We propose a method to jointly optimize both meta-parameters in a way that is both safe and cost-sensitive. We focus on the class of Gaussian policies, which is the most commonly used to address control problems with continuous action spaces.
+In this chapter we propose a new safe approach to policy gradient. As mentioned in Section \ref{sec:beyond}, the safe policy gradient algorithms that have been proposed so far in the literature have focused on the choice of the optimal step size, while, to the best of our knowledge, the choice of the batch size has been neglected. We propose a method to jointly optimize both meta-parameters in a way that is both safe and cost-sensitive. We focus on the class of Gaussian policies, which is the most commonly used to address control problems with continuous action spaces.
 
 In Section \ref{sec:main_overview} we outline the whole procedure. In Section \ref{sec:acd} we generalize and improve an existing result on the adaptive step size. Building on this results, in Section \ref{sec:batchsize} we derive the optimal batch size and provide the jointly optimizing algorithm and some variants.
 
@@ -12,7 +12,7 @@ However, it is not trivial to define a proper objective function for this goal. 
 	\Upsilon = \frac{\DeltaJ}{N}.
 \]
 This simple objective has a strong and intuitive motivation: maximizing $\Upsilon$ means to maximize the average \textit{per-trajectory} performance improvement. In this way, the employment of more samples must be justified by a sufficient performance improvement. This intuition makes $\Upsilon$, in our opinion, the most appropriate objective function for the cost-sensitive scenario.
-Is following this approach that we derive the adaptive batch size, finally providing an algorithm that guarantees monotonic improvement with high probability, without resorting to impractically high batch sizes.
+Following this approach we derive the adaptive batch size, finally providing an algorithm that guarantees monotonic improvement with high probability, without resorting to impractically high batch sizes.
 
 
 
@@ -38,7 +38,7 @@ By adapting Theorem 4.3 in \cite{NIPS2013_5186} to the new parameter update, we 
 State features are uniformly bounded:
 $|\phi_i(s)| \leq M_{\phi}, \forall s \in \mathcal{S}, \forall i=1,\dotsc,m$.
 \end{assumption}
-The bound on state feature naturally arises in many applications. Even when this is not the case, it can be imposed in the feature design phase or inferred from observations. 
+The bound on state features naturally arises in many applications. Even when this is not the case, it can be imposed in the feature design phase or inferred from observations. 
 We can now state the following:
 
 \begin{restatable}{lemma}{firstlemma}\label{lemma:1}
@@ -75,7 +75,7 @@ This assignment yields:
 \[
 \DeltaJ \geq  \frac{\gradJ{\theta_k}^2}{4c}.
 \]
-To obtain the global maximum is enough to select $k$ as to maximize the above quantity, which results in the following:
+To obtain the global maximum is enough to select $k$ so as to maximize the above quantity, which results in the following:
 
 \begin{restatable}{corollary}{firstcorollary}\label{cor:1}
 The performance lower bound of Theorem \ref{theo:1} is maximized by the following non-scalar step size:
@@ -122,7 +122,7 @@ We denote with $\epsilon_i \geq 0$ a high-probability upper bound on the approxi
 \[
 	\Pr(|\gradJ{\theta_i} - \gradApp{\theta_i}| \leq \epsilon_i) \geq 1-\delta.
 \]
-The estimation error heavily depends on the batch size, so we leave the problem of computing such bounds to the following Section.
+The estimation error heavily depends on the batch size, so we leave the problem of computing such bounds to the following section.
 To adapt the result of Theorem \ref{theo:1} to the stochastic gradient case, we need both a lower bound and an upper bound on $\gradApp{\vtheta}$.
 \begin{align*}
 \gradDown{\vtheta} &= max(|\gradApp{\vtheta}| - \boldsymbol{\epsilon},\boldsymbol{0}) \\
@@ -240,7 +240,7 @@ where $c = \frac{RM_{\phi}^2}{(1-\gamma)^2\sigma^2}\left(\frac{|\mathcal{A}|}{\s
 \]
 \end{restatable}
 
-The complete proof is left to Appendix \ref{app:proofs}, but Figure \ref{fig:0} provides an intuition. The cost function $\Upsilon_\delta$ is plotted over value of $N$. Real data from one of the experiments of Section \ref{sec:lqg1d} were used. The function is enhanced to make the peaks more visible, without altering the overall shape. We can see two stationary points: call $N_0$ the minimum and $N^*$ the maximum (marked with a diamond). $N_0$ has value $0$ and is also the global minimum. This point corresponds to the case $\epsilon = \norm[\infty]{\gradApp{\vtheta}}$. Going towards $N=0$, $\Upsilon_\delta$ goes to infinity, because of the $1/N$ cost factor. However, for $N<N_0$, Assumption \ref{assum:3} is not satisfied, so no performance improvement can be guaranteed at all. In the feasible region, $N\geq N_0$, local maximum $N^*$ is also the global maximum. This is the optimal batch size.
+The complete proof is left to Appendix \ref{app:proofs}, but Figure \ref{fig:0} provides an intuition. The cost function $\Upsilon_\delta$ is plotted over the value of $N$. Real data from one of the experiments of Section \ref{sec:lqg1d} were used. The function is enhanced to make the peaks more visible, without altering the overall shape. We can see two stationary points: call $N_0$ the minimum and $N^*$ the maximum (marked with a diamond). $N_0$ has value $0$ and is also the global minimum. This point corresponds to the case $\epsilon = \norm[\infty]{\gradApp{\vtheta}}$. Going towards $N=0$, $\Upsilon_\delta$ goes to infinity, because of the $1/N$ cost factor. However, for $N<N_0$, Assumption \ref{assum:3} is not satisfied, so no performance improvement can be guaranteed at all. In the feasible region, $N\geq N_0$, local maximum $N^*$ is also the global maximum. This is the optimal batch size.
 
 \begin{figure}[H]
 \includegraphics[width = \textwidth,center]{Images/upsilon.pdf}
@@ -255,16 +255,16 @@ As already mentioned, under Assumption \ref{assum:4}, Assumption \ref{assum:3} c
 \[
 	N \geq N_0 \triangleq \frac{d_\delta^2}{\norm[\infty]{\gradApp{\vtheta}}^2},
 \]
-which is always verified by the proposed $N^*$. This means that the adaptive batch size never allows an estimation error larger than the gradient estimate. This is good news, but it may also lead to very high batch sizes once $\vtheta$ is very close to the optimal parameter. An additional stopping condition may be necessary, and one option is simply to set a maximum allowed batch size.
+which is always verified by the proposed $N^*$. This means that the adaptive batch size never allows an estimation error larger than the gradient estimate. This is good news, but it may also lead to very large batch sizes once $\vtheta$ is very close to the optimal parameter. An additional stopping condition may be necessary, and one option is simply to set a maximum allowed batch size.
 \paragraph{}
 Notice also that the optimal batch size, as defined in Theorem \ref{theo:5}, is referred to the upcoming parameter update. However, the optimal batch size can be employed only for the next update, since trajectory samples need to be collected first. This means that, in any practical implementation, the adaptive batch size that we have defined is always "a learning iteration too late". However, it is reasonable to assume that the conditions that determined the optimal batch size will not vary significantly between a learning iteration and the following one. While we need to rely on $N$'s predictive power, we can keep the step size synchronized as follows: compute $\Lambda^*$ as in Corollary \ref{cor:3}, using:
 \[
 	\epsilon = \frac{d_\delta}{\sqrt{N}},
 \]
 where $d_\delta$ is computed with the latest available data and $N$ is the batch size used to collect them. A collateral effect of this approach is that, due to integer approximation, the step size is no longer constant. However, the variations in its value should be quite small.
-\paragraph{}
-These expedients lead to the following algorithm: 
-\begin{algorithm}[H]
+
+These expedients lead to Algorithm \ref{alg:adabatch}. 
+\begin{algorithm}[t]
 \caption{Adaptive Policy Gradient}
 \label{alg:adabatch}
 \begin{algorithmic}
@@ -289,7 +289,6 @@ These expedients lead to the following algorithm:
 \EndWhile
 \end{algorithmic}
 \end{algorithm}
-
 Notice that there is still a parameter that must be selected by an expert: $\delta$. This is the probability of having a worsening update, since monotonic improvement is guaranteed with probability $(1-\delta)^m$. Intuitively, the choice of $\delta$ depends on risk attitude and should be small in critical applications. However, numerical simulations (see Section \ref{sec:simul}) show that, at least for simple problems, $\delta$ can be set to very high values ($\sim 1$) without compromising monotonic improvement. This can be useful, since larger values of $\delta$ lead to faster convergence.
 
 We now consider some concentration bounds in more detail, providing the values for $d_{\delta}$ and the corresponding explicit expressions for $N^*$.
@@ -310,7 +309,7 @@ This bound is compliant with Assumption \ref{assum:4} and gives the following ex
 d_\delta = \sqrt{\frac{Var[\gradSim{\theta_i}]}{\delta}},
 \]
 where $\gradSim{\theta_i}$ is the policy gradient approximator (from a single sample trajectory).
-The main advantage of this bound is that it doesn't make any assumption on the range of the gradient sample.
+The main advantage of this bound is that it does not make any assumption on the range of the gradient sample.
 \paragraph{}
 Using results from \cite{DBLP:journals/nn/ZhaoHNS12} as adapted in \cite{NIPS2013_5186}, we can give explicit formulations for the optimal batch size.
 When the REINFORCE \cite{Williams1992} gradient estimator ($\gradRF{\vtheta}$) is used to estimate the gradient, we can use Lemma 5.4 from \cite{NIPS2013_5186} to bound the estimation error as:
@@ -360,7 +359,7 @@ d_\delta = \mathbf{R}\sqrt{\frac{\log{2/\delta}}{2}},
 For the class of policies we are considering, i.e. Gaussian with mean linear in the features, the range can be upper bounded under some assumptions:
 
 \begin{restatable}{lemma}{secondlemma}
-For any Gaussian policy $\pi_\theta \sim \mathcal{N}(\vtheta^T\vphi(s),\sigma^2)$, assuming that the action space is bounded ($|a|\leq \overline{A}\:\:\forall a \in \mathcal{A}$) and the policy gradient is estimated on trajectories of length $H$,the range $\mathbf{R}$ of the policy gradient sample $\gradSim{\theta_i}$ can be upper bounded $\forall i=1,\dots,m$ and $\forall \theta$ by
+For any Gaussian policy $\pi_\theta \sim \mathcal{N}(\vtheta^T\vphi(s),\sigma^2)$, assuming that the action space is bounded ($|a|\leq \overline{A}\:\:\forall a \in \mathcal{A}$) and the policy gradient is estimated on trajectories of length $H$, the range $\mathbf{R}$ of the policy gradient sample $\gradSim{\theta_i}$ can be upper bounded $\forall i=1,\dots,m$ and $\forall \theta$ by
 \[
 \mathbf{R} \leq \frac{2HM_{\phi}\overline{A}R}{\sigma^2(1-\gamma)}.
 \]
@@ -406,12 +405,13 @@ N \geq N_0 := \left(\frac{d_{\delta} + \sqrt{d_{\delta}^2 + 4f_{\delta}\norm[\in
 so $N_0$ can be used as the starting point of the linear search.
 Computing the derivative w.r.t $N$ we obtain two distinct factors for the numerator:
 
-\begin{scriptsize}
 \begin{align*}
-&\left(d_{\delta}\sqrt{N}+f_{\delta} - \norm[\infty]{\gradApp{\vtheta}}N\right)^3, \\
-&\left(2d_{\delta}^2N+5d_{\delta}f_{\delta}\sqrt{N}+3d_{\delta}\norm[\infty]{\gradApp{\vtheta}}N^{\nicefrac{3}{2}} +3f_{\delta}^2+6f\norm[\infty]{\gradApp{\vtheta}}N-\norm[\infty]{\gradApp{\vtheta}}^2N^2\right).
+\left(d_{\delta}\sqrt{N}+f_{\delta} - \norm[\infty]{\gradApp{\vtheta}}N\right)^3,
 \end{align*}
-\end{scriptsize}
+\begin{align*}
+\left(2d_{\delta}^2N+5d_{\delta}f_{\delta}\sqrt{N}+3d_{\delta}\norm[\infty]{\gradApp{\vtheta}}N^{\nicefrac{3}{2}} +3f_{\delta}^2\right.& \\
+\left.   \hspace*{1cm}+6f\norm[\infty]{\gradApp{\vtheta}}N-\norm[\infty]{\gradApp{\vtheta}}^2N^2\right)&.
+\end{align*}
 
 The first one gives again $N_0$, which is the global minimum. By applying Descartes' rule of signs to the other one, seen as a polynomial in $\sqrt{N}$, we see that it gives just one root. The exact expression of this maximum is too big to be reported and too long to code, but its uniqueness, together with the fact that $\Upsilon_{\delta}$ goes to $0$ as N goes to infinity, justifies the following methodology: to find $N^*$, start from $N_0$ and stop as soon as the value of the cost function $\Upsilon(\Lambda^*,N)$ begins to decrease.
 \paragraph{}

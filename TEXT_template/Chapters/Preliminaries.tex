@@ -10,7 +10,7 @@ Following the opposite direction than the one usually adopted by Reinforcement L
 
 \subsection{The model}
 \paragraph{} %Scope
-Markov decision processes model the very general situation in which an agent interacts with a stochastic, partially observable environment in order to reach a goal. At each time step $t$, the agent receives observations from the environment. From the current observations and previous interactions, the agent builds a representation of the current state of the environment, $s_t$. Then, depending on $s_t$, it takes action $a_t$. Finally, it is given a (possibly negative) reward depending on how much its behavior is compliant with the goal, in the form of a scalar signal $r_t$. The dynamics of the environment, as represented by the agent, must satisfy two fundamental properties:
+Markov decision processes model the very general situation in which an agent interacts with a stochastic, partially observable environment in order to reach a goal. At each time step $t$, the agent receives observations from the environment. From the current observations and previous interactions, the agent builds a representation of the current state of the environment, $s_t$. Then, depending on $s_t$, it takes action $a_t$. Finally, it is given a (possibly negative) reward depending on how much its behavior is compliant with the goal, in the form of a scalar signal $r_{t+1}$. The dynamics of the environment, as represented by the agent, must satisfy two fundamental properties:
 \begin{itemize}
 \item Stationarity: the dynamics of the environment does not change over time.
 \item Markov property: $s_{t+1}$ must depend only on $s_t$ and $a_t$.
@@ -30,7 +30,7 @@ $\langle \mathcal{S},\mathcal{A},\mathcal{P},\mathcal{R},\gamma,\mu \rangle$
 \item $\gamma \in [0,1)$ is the discount factor for future rewards.
 \item $\mu \in \Delta(\mathcal{S})$ is the initial state distribution, from which the initial state is drawn.
 \end{itemize}
-The behavior of the agent is modeled with as a stationary, possibly stochastic policy:
+The behavior of the agent is modeled with a stationary, possibly stochastic policy:
  \[
  	\pi \colon \mathcal{S}\mapsto\Delta(\mathcal{A}),
  \] 
@@ -38,7 +38,7 @@ such that $\pi(s)$ is the probability distribution over the action $a$ to take i
 We say that a policy $\pi$ is deterministic if for each $s \in \mathcal{S}$ there exists some $a \in \mathcal{A}$ such that $\pi(a \mid s) = 1$. With abuse of notation, we denote with $\pi(s)$ the action selected with probability $1$ by a deterministic policy $\pi$ in state $s$.
 
 \subsection{Reinforcement Learning: problem formulation}
-Given a \ac{MDP}, the goal of Reinforcement Learning is to find an optimal policy $\pi^*$ without an a-priori model of the environment, i.e.\ without knowing $\mathcal{P}$, $\mathcal{R}$ and $\mu$. The optimal policy must be learned by direct interaction with the environment (which may be a real system or a simulation). The objective of the agent is to maximize the total discounted reward, called return $v$:
+Given an \ac{MDP}, the goal of Reinforcement Learning is to find an optimal policy $\pi^*$ without an a-priori model of the environment, i.e.\ without knowing $\mathcal{P}$, $\mathcal{R}$ and $\mu$. The optimal policy must be learned by direct interaction with the environment (which may be a real system or a simulation). The objective of the agent is to maximize the total discounted reward, called return $v$:
 \[
 	v = \sum_{t=0}^{\infty}\gamma^tr_{t}.
 \]
@@ -100,10 +100,12 @@ Intuitively, $\mathbb{A}_{\pi,\mu}(\pi')$ measures how much $\pi'$ selects advan
 
 \section{Overview of Reinforcement Learning Algorithms}\label{sec:overview}
 
+In this section we provide an overview of the main classes of \ac{RL} algorithms, highlighting the differences between the policy iteration approach and the policy search approach.
+
 \subsection{Partial taxonomy}
 Reinforcement learning algorithms can be classified according to many different criteria.
 \paragraph{} %on/off policy
-First, it is useful to discriminate between the target policy, which is the output of the learning algorithm, and behavior policies, which are policies used to interact with the environment. This produces a first distinction:
+First, it is useful to discriminate between the target policy, that is the output of the learning algorithm, and behavior policies, which are policies used to interact with the environment. This produces a first distinction:
 \begin{itemize}
 \item On-policy algorithms: the behavior policy coincides with the target policy.
 \item Off-policy algorithms: a target policy is learned independently from the adopted behavior policies. 
@@ -122,9 +124,9 @@ Another useful distinction is the following:
 \item Model-based algorithms: the agent has an explicit model of the environment.
 \item Model-free algorithms: the agent has no model of the environment.
 \end{itemize}
-When the model of the environment is exact, the \ac{RL} problem reduces to a dynamic programming problem. A more interesting situation is when the environment dynamics must be estimated from data. However, we will mainly consider model-free algorithms.
+When the model of the environment is exact, the \ac{RL} problem can be solved by using dynamic programming algorithms. A more interesting situation is when the environment dynamics must be estimated from data. However, we will mainly consider model-free algorithms.
 \paragraph{} %iteration/search
-Finally, most \ac{RL} methods can be classified into the two following classes:
+Finally, most \ac{RL} methods can be classified into the following two classes:
 \begin{itemize}
 \item Value function methods rely on the computation of a value function to learn better and better policies.
 \item Direct policy search methods directly search for an optimal solution in the space of policies.
@@ -154,10 +156,10 @@ Convergence guarantees are available for most of these algorithms \cite{Tsitsikl
 \paragraph{} %Policy iteration and continous MDPs
 Unfortunately, tabular algorithms cannot be applied to the more general case of continuous \ac{MDP}s. One possibility is to discretize the state and action spaces. This is possible, but not trivial, and may not be suitable for most tasks. Moreover, tabular methods are unfeasible even for discrete \ac{MDP}s when the cardinality of the state-action space is too high.
 Another possibility is to replace the value function with a function approximator. The supervised learning literature provides very powerful function approximators, such as neural networks, which are able to approximate functions of arbitrary complexity starting from a finite parametrization.
-However, the convergence properties of policy iteration methods employing function approximators are not well understood. The problem is that two levels of approximation are used: the function approximator tries to map action-state pairs to returns, which in turn are sampled from limited experience, creating a sort of moving target situation. Although function approximation have been successfully applied to complex \ac{RL} problems, its lack of theoretical guarantees makes it unfeasible for many relevant applications. These problems are discussed in more depth in Section \ref{sec:why_pg}.
+However, the convergence properties of policy iteration methods employing function approximators are not well understood. The problem is that two levels of approximation are used: the function approximator tries to map action-state pairs to returns, which in turn are sampled from limited experience, creating a sort of moving target situation. Although function approximation has been successfully applied to complex \ac{RL} problems, its lack of theoretical guarantees makes it unfeasible for many relevant applications. These problems are discussed in more depth in Section \ref{sec:why_pg}.
 
 \subsection{Policy search}
-Contrary to value function approaches, direct policy search consists in exploring a subset of policy space directly to find an optimal policy. The fact that it does not require to estimate the value function makes this approach suitable for continuous \ac{MDP}s, such as the one arising in robotics. For a recent survey on policy search methods refer to \cite{deisenroth2013survey}. The following section is entirely dedicated to policy gradient. Other notable model-free policy search methods are \ac{EM} algorithms and \ac{REPS}.
+Contrary to value function approaches, direct policy search consists in exploring a subset of the policy space directly to find an optimal policy. The fact that it does not require to estimate the value function makes this approach suitable for continuous \ac{MDP}s, such as the one arising in robotics. For a recent survey on policy search methods refer to \cite{deisenroth2013survey}. The following section is entirely dedicated to policy gradient. Other notable model-free policy search methods are \ac{EM} algorithms and \ac{REPS}.
 
 \section{Policy Gradient}\label{sec:pol_grad}
 In this section we will focus on a direct policy search approach with good theoretical properties and promising practical results: policy gradient.
@@ -165,7 +167,7 @@ In this section we will focus on a direct policy search approach with good theor
 \subsection{Why policy gradient}\label{sec:why_pg}
 As mentioned in Section \ref{sec:pol_iter}, policy iteration requires to employ function approximators to deal with continuous \ac{MDP}s. We now present in more detail the main problems of this approach:
 \begin{itemize}
-\item Function approximation methods have no guarantee of convergence, not even to locally optimal policies, and there are even examples of divergence. Besides compromising the learning process, in some application such instabilities may damage the system. 
+\item Function approximation methods have no guarantee of convergence, not even to locally optimal policies, and there are even examples of divergence. Besides compromising the learning process, in some applications such instabilities may damage the system. 
 \item Greedy policies based on approximated value functions can be highly sensitive to small perturbations in the state, making them unfeasible for tasks characterized by noise, e.g.\ control tasks with noisy sensors.
 \item Given the complexity of the value function representation (think of a multi-layer perceptron), it is difficult to isolate undesired behaviors, such as potentially dangerous actions.
 \end{itemize}
@@ -180,7 +182,7 @@ Policy gradient is a kind of policy search based on gradient descent, in which t
 \[
 	\Pi_{\vtheta} = \{\pi_{\vtheta}:\vtheta\ \in \vTheta \subseteq \mathbb{R}^m\},
 \]
-where $\vtheta$ is the parameter vector. The parametric policy $\pi_{\vtheta}$ can have any shape, but is required to be differentiable in $\vtheta$. Like all gradient descent methods, the parameter vector is updated in the direction of the gradient of a performance measure, which is guaranteed to be the direction of maximum improvement. In our case the performance measure is the expected return $J_{\mu}^{\pi_{\vtheta}}$, which we overload as $J_{\mu}(\vtheta)$ for the sake of readability. The gradient of the expected return w.r.t. the parameter vector, $\gradJ{\vtheta}$, is called policy gradient. Starting from an arbitrary initial parametrization $\vtheta_0$, policy gradient methods performs updates of the kind: 
+where $\vtheta$ is the parameter vector. The parametric policy $\pi_{\vtheta}$ can have any shape, but is required to be differentiable in $\vtheta$. Like all gradient descent methods, the parameter vector is updated in the direction of the gradient of a performance measure, which is guaranteed to be the direction of maximum improvement. In our case the performance measure is the expected return $J_{\mu}^{\pi_{\vtheta}}$, which we overload as $J_{\mu}(\vtheta)$ for the sake of readability. The gradient of the expected return w.r.t. the parameter vector, $\gradJ{\vtheta}$, is called policy gradient. Starting from an arbitrary initial parametrization $\vtheta_0$, policy gradient methods perform updates of the kind: 
 \[
 	\vtheta \gets \vtheta + \alpha\gradJ{\vtheta},
 \]
@@ -190,7 +192,7 @@ Convergence to at least a local optimum is guaranteed by the gradient descent up
 \subsection{Policy Gradient Theorem and eligibility vectors}
 The Policy Gradient Theorem is a result by Sutton et al. \cite{Sutton1999a} that relates the policy gradient to the value function $Q^\pi$:
 \begin{theorem}[Continuous version of Theorem 1 from \cite{Sutton1999a}]\label{theo:pgt}
-For any \ac{MDP}
+For any \ac{MDP},
 \[
 	\gradJ{\vtheta} = \int_{\mathcal{S}}d_{\mu}^{\pi}(s)
 		\int_{\mathcal{A}} \nabla_{\vtheta}\pi_{\vtheta}(a \mid s)Q^{\pi}(s,a)\mathrm{d}a\mathrm{d}s.
@@ -226,7 +228,7 @@ Among the oldest policy gradient methods we find finite-difference methods \cite
 \[
 	\gradApp{\vtheta} = (\boldsymbol{\Delta\Theta}^T\boldsymbol{\Delta\Theta})^{-1}\boldsymbol{\Delta\Theta}^T\boldsymbol{\Delta\hat{J}}
 \]
-where $\boldsymbol{\Delta\Theta}^T = [\Delta\vtheta_1,\dots,\Delta\vtheta_K]^T$ and $\boldsymbol{\Delta\hat{J}} = [\Delta\hat{J}_1,\dots,\Delta\hat{J}_K]^T$. This method is easy to implement and very efficient when applied to deterministic tasks or pseudo-random number simulations. In real control tasks though, perturbing the policy parametrization without incurring in instability may not be trivial and noise can have a disastrous impact on performance. Moreover, this kind of gradient estimation requires a large number of trajectories.
+where $\boldsymbol{\Delta\Theta}^T = [\Delta\vtheta_1,\dots,\Delta\vtheta_K]^T$ and $\boldsymbol{\Delta\hat{J}} = [\Delta\hat{J}_1,\dots,\Delta\hat{J}_K]^T$. This method is easy to implement and very efficient when applied to deterministic tasks or pseudo-random number simulations. In real control tasks though, perturbing the policy parametrization without incurring in instability may not be trivial and noise can have a severe impact on performance. Moreover, this kind of gradient estimation requires a large number of trajectories.
 
 \subsection{Likelihood Ratio}\label{sec:likelihood_ratio}
 The likelihood ratio approach allows to estimate the gradient even from a single trajectory, without the need of perturbing the parametrization. This method is due to Williams \cite{Williams1992}, but is better understood from the perspective of the later Policy Gradient Theorem \cite{Sutton1999a}.
@@ -314,11 +316,11 @@ In the case $b=0$, the PGT gradient estimation has been proven to suffer from le
 
 
 \subsection{Natural gradients}
-The algorithms described so far use the so-called vanilla policy gradient, i.e.\ an unbiased estimate of the true gradient w.r.t.\ policy parameters.
-Since such algorithms perform a search in parameter space $\Theta$, the performance is strongly depends on the policy parametrization.
+The algorithms described so far use the so-called vanilla policy gradient, \ie an unbiased estimate of the true gradient w.r.t.\ policy parameters.
+Since such algorithms perform a search in parameter space $\Theta$, the performance strongly depends on the policy parametrization.
 Natural policy gradients allow to search directly in policy space, independently on the parametrization. The natural policy gradient update rule is \cite{Kakade:2001}:
 \[
-	\vtheta \gets \vtheta + F_{\vtheta}\gradJ{\vtheta},
+	\vtheta \gets \vtheta + F_{\vtheta}^{-1}\gradJ{\vtheta},
 \]
 where $F_{\vtheta}$ is the Fisher information matrix:
 \begin{align*}
@@ -342,7 +344,7 @@ Actor and critic meet when $\hat{Q}_{\boldsymbol{w}}$ is used to compute the pol
 \begin{equation}\label{eq:ac_update} 
 	\vtheta \gets \vtheta + \langle\score \hat{Q}_{\boldsymbol{w}}(s,a)\rangle_H.
 \end{equation}
-This approach exploits the predictive power of approximate value functions while preserving the nice theoretical properties of the policy gradient. Under some assumption on the critic function (see Theorem 2 in \cite{Sutton1999a}), the Policy Gradient Theorem is still valid when $\hat{Q}_{\boldsymbol{w}}$ is used in place of the true value function $Q^\pi$:
+This approach exploits the predictive power of approximate value functions while preserving the nice theoretical properties of the policy gradient. Under some assumptions on the critic function (see Theorem 2 in \cite{Sutton1999a}), the Policy Gradient Theorem is still valid when $\hat{Q}_{\boldsymbol{w}}$ is used in place of the true value function $Q^\pi$:
 \[
 	\gradJ{\vtheta} = \int_{\mathcal{S}}d_{\mu}^{\pi}(s)
 		\int_{\mathcal{A}}\pi_{\vtheta}(a \mid s)\score
@@ -375,5 +377,5 @@ When the action space $\mathcal{A}$ is discrete, a common choice is the softmax 
 \]
 having eligibility vector:
 \[
-	\score = \vphi(s,a) - \sum\limits_{a' \in \mathcal{A}}\pi_{\vtheta}(s \mid a)\vphi(s,a')
+	\score = \vphi(s,a) - \sum\limits_{a' \in \mathcal{A}}\pi_{\vtheta}(s \mid a)\vphi(s,a').
 \]
