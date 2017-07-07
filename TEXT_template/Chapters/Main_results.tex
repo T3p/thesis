@@ -289,7 +289,7 @@ These expedients lead to Algorithm \ref{alg:adabatch}.
 \EndWhile
 \end{algorithmic}
 \end{algorithm}
-Notice that there is still a parameter that must be selected by an expert: $\delta$. This is the probability of having a worsening update, since monotonic improvement is guaranteed with probability $(1-\delta)^m$. Intuitively, the choice of $\delta$ depends on risk attitude and should be small in critical applications. However, numerical simulations (see Section \ref{sec:simul}) show that, at least for simple problems, $\delta$ can be set to very high values ($\sim 1$) without compromising monotonic improvement. This can be useful, since larger values of $\delta$ lead to faster convergence.
+Notice that there is still a parameter that must be selected by an expert: $\delta$. This is the probability of having a worsening update, since monotonic improvement is guaranteed with probability $(1-\delta)^m$. Intuitively, the choice of $\delta$ depends on risk attitude and should be small in critical applications. However, numerical simulations (see Chapter \ref{chap:simul}) show that, at least for simple problems, $\delta$ can be set to very high values ($\sim 1$) without compromising monotonic improvement. This can be useful, since larger values of $\delta$ lead to faster convergence.
 
 We now consider some concentration bounds in more detail, providing the values for $d_{\delta}$ and the corresponding explicit expressions for $N^*$.
 
@@ -365,7 +365,7 @@ For any Gaussian policy $\pi_\theta \sim \mathcal{N}(\vtheta^T\vphi(s),\sigma^2)
 \]
 \end{restatable}
 
-As we will show in Section \ref{sec:simul}, a more practical solution (even if less rigorous) consists in computing the range as the difference between the largest and the smallest gradient sample seen during learning.
+As we will show in Chapter \ref{chap:simul}, a more practical solution (even if less rigorous) consists in computing the range as the difference between the largest and the smallest gradient sample seen during learning.
 
 \subsection{Empirical Bernstein's bound}
 Tighter concentration bounds allow for smaller batch sizes (which result in more frequent policy updates) and larger step sizes, thus speeding up the learning process and improving long-time average performance. An empirical Bernstein bound from \cite{Mnih:2008:EBS:1390156.1390241} allows to use sample variance instead of the variance bounds from \cite{DBLP:journals/nn/ZhaoHNS12} and to limit the impact of the gradient range. We report the bound for a generic stochastic variable $X$:

@@ -1,9 +1,9 @@
-\chapter{Numerical simulations}\label{sec:simul}
+\chapter{Numerical simulations}\label{chap:simul}
 
-In this chapter we conduct some experiments to test our safe method. We compare the different variants of our algorithm to observe their performance in practice. We also compare our method with older or more common approaches to see how much the theoretical improvements obtained in the previous chapter translate into better practical results.
+In this chapter we describe some experiments performed to test our safe methods. We compare the different variants of our algorithm to observe their performance in practice. We also compare our method with older or more common approaches to see how much the theoretical improvements obtained in the previous chapter translate into better practical results.
 
 In Section \ref{sec:lqg1d} we use a simple simulated control task, one-dimensional \ac{LQG}, to compare the different variants of our algorithm.
-In Section \ref{sec:lqg2d} we use a two-dimensional variant of the same problem to show the advantages of our method over older approaches.
+In Section \ref{sec:lqg2d} we use a two-dimensional variant of the same problem to show the advantages of our method over previous approaches.
 In Section \ref{sec:cartpole} we use a continuous action variant of the popular cart-pole task to improve a baseline policy after a change has been introduced to the environment, to show the practical advantages of our method.
 
 \section{One-Dimensional LQG}\label{sec:lqg1d}
@@ -26,7 +26,7 @@ Intuitively, the problem is to bring to zero a system's state, in the presence o
 The policy has a single parameter $\theta$. The optimal value $\theta^*$ can be computed exactly, but the problem can be used as a benchmark for \ac{RL} algorithms.
 
 In all our simulations we use $\sigma_0 = 0$, since all the noise can be modeled on the agent's side without loss of generality. Both action and state variables are bounded to the interval $[-2,2]$ and the initial state is drawn uniformly at random.  
-We use a discount factor $\gamma=0.9$, which gives as optimal parameter $\theta^* \approx -0.59$, corresponding to expected performance $J(\theta^*) \approx -13.21$. The expected performance is very pessimistic, since it doesn't take into account the bound on actions and states and the limited length of the task horizon, but equally captures the progress of the real performance. A monotonically improving expected performance is a guarantee that the policy is improving without oscillation, even if the measured performance is noisy due to stochasticity in the environment and in the policy itself.
+We use a discount factor $\gamma=0.9$, which gives as optimal parameter $\theta^* \approx -0.59$, corresponding to expected performance $J(\theta^*) \approx -13.21$. The expected performance is very pessimistic, since it does not take into account the bound on actions and states and the limited length of the task horizon, but equally captures the progress of the real performance. A monotonically improving expected performance is a guarantee that the policy is improving without oscillation, even if the measured performance is noisy due to stochasticity in the environment and in the policy itself.
 \paragraph{}
 In our experiments, we are interested both in the convergence speed and in policy oscillation. We call \textit{improvement ratio} the ratio of policy updates that does not result in a worsening of the expected performance. First of all, we want to analyze how the choice of fixed step sizes and batch sizes may affect the improvement ratio and how much it depends on the variability of the trajectories (that in this case is due to the variance of the policy $\sigma$).
 Table \ref{tab:1} shows the improvement ratio for two parameterizations ($\sigma=0.5$ and $\sigma=1$) when various constant step sizes and batch sizes are used, starting from $\theta=-0.55$ and stopping after a total of one million trajectories. 
@@ -62,30 +62,19 @@ Figure \ref{fig:1} shows the expected performance over sample trajectories for t
  To make this and the following figures more interpretable, some words must be spent on how data were processed. Each learning iteration corresponds to a single value of $\theta$, with a corresponding expected performance. The latter was scaled over time, simply by maintaining the value for all the trajectories of the batch (a closer look to the plot would reveal a series of steps of variable length and height). The horizontal scaling was performed to better capture the improvement of performance over time.
 
 
-\begin{figure}[h!]
+\begin{figure}[t!]
 \includegraphics[width = \textwidth]{Images/chebyshev.pdf}
 \caption[Expected performance over sample trajectories in the one-dimensional LQG task for different gradient estimators ad values of $\delta$.]{Expected performance over sample trajectories in the one-dimensional \ac{LQG} task, using G(PO)MDP and REINFORCE (dashed) gradient estimators and Chebyshev bound, for different values of $\delta$. Expected performance is computed for each parameter update. Data are then scaled to account for the different batch sizes. All results are averaged over 5 runs of 30 million total trajectories each.}
 \label{fig:1}
 \end{figure}
 
+First of all, we can see that in all cases the performance curves are very regular. This is due to the small step sizes selected by the algorithm, which are of the order of $10^{-5}$.
+
 In general REINFORCE performs worse than G(PO)MDP due to its larger variance.
 Larger values of $\delta$  lead to better performance. Notice that an improvement ratio of $1$ is achieved also with large values of $\delta$. This is due to the fact that the bounds used in the development of our method are not tight. Being the method this conservative, in practical applications $\delta$ can be set to a high value to improve the convergence rate.
-\paragraph{}
-The next step is to compare the Chebyshev's bound approach to the other methods proposed in Section \ref{sec:batchsize}. We stick to the configuration that performed the best in the previous experiment: G(PO)MDP to estimate the gradient and $\delta=0.95$. 
-Figure \ref{fig:2} compares the performance of the different concentration bounds.
 
-\begin{figure}[h!]
-\includegraphics[width = 1.0\textwidth]{Images/compare_bounds.pdf}
-\caption[Comparison of the performance of different statistical bounds in the one-dimensional LQG task.]{Comparison of the performance of different statistical bounds in the one-dimensional \ac{LQG} task, using the G(PO)MDP gradient estimator and $\delta=0.95$. All results are averaged over 5 runs.}
-\label{fig:2}
-\end{figure}
-
-As expected, Bernstein's bound performs better than Chebyshev's, especially in the empirical range version. The rigorous version of Hoeffding's bound performs very poorly, while the one using the empirical range is almost as good as the corresponding Bernstein method. This is due to the fact that the bound on the gradient estimate range is very loose, since it accounts also for unrealistic combinations of state, action and reward.
-\paragraph{}
-To better capture the performance of the different variants of the algorithm in a real-time scenario, we define a metric $\overline{\Upsilon}$, which is obtained by averaging the real performance (measured during learning) over all the trajectories, coherently with the cost function used to derive the optimal batch size. The results are reported in Table \ref{tab:2}.
-
-\begin{table}[H]
-\caption[Average performance in the one-dimensional LQG task for different gradient estimators, statistical bounds and values of $\delta$.]{Average performance in the one-dimensional \ac{LQG} task for different gradient estimators, statistical bounds and values of $\delta$. All results are averaged over 5 runs ($5\%$ confidence intervals are reported). The abbreviation 'e.r.' stands for 'empirical range'}
+\begin{table}[t!]
+\caption[Average performance in the one-dimensional LQG task for different gradient estimators, statistical bounds and values of $\delta$.]{Average performance in the one-dimensional \ac{LQG} task for different gradient estimators, statistical bounds and values of $\delta$. All results are averaged over 5 runs ($95\%$ confidence intervals are reported). The abbreviation 'e.r.' stands for 'empirical range'}
 \label{tab:2}
 \centering
 \begin{adjustbox}{width=1.0\linewidth,center}
@@ -99,16 +88,30 @@ Estimator & Bound &$\delta$ & $\overline{\Upsilon}$ & Confidence interval \\\mid
 \end{adjustbox}
 \end{table}
 
+\paragraph{}
+The next step is to compare the Chebyshev's bound approach to the other methods proposed in Section \ref{sec:batchsize}. We stick to the configuration that performed the best in the previous experiment: G(PO)MDP to estimate the gradient and $\delta=0.95$. 
+Figure \ref{fig:2} compares the performance of the different concentration bounds.
+
+\begin{figure}[t!]
+\includegraphics[width = 1.0\textwidth]{Images/compare_bounds.pdf}
+\caption[Comparison of the performance of different statistical bounds in the one-dimensional LQG task.]{Comparison of the performance of different statistical bounds in the one-dimensional \ac{LQG} task, using the G(PO)MDP gradient estimator and $\delta=0.95$. All results are averaged over 5 runs.}
+\label{fig:2}
+\end{figure}
+
+As expected, Bernstein's bound performs better than Chebyshev's, especially in the empirical range version. The rigorous version of Hoeffding's bound performs very poorly, while the one using the empirical range is almost as good as the corresponding Bernstein method. This is due to the fact that the bound on the gradient estimate range is very loose, since it accounts also for unrealistic combinations of state, action and reward.
+
+To better capture the performance of the different variants of the algorithm in a real-time scenario, we define a metric $\overline{\Upsilon}$, that is obtained by averaging the real performance (measured during learning) over all the trajectories, coherently with the cost function used to derive the optimal batch size. The results are reported in Table \ref{tab:2}.
+
 Finally, it is interesting to look at the trend of the batch size over learning iterations. Figures \ref{fig:3} and \ref{fig:8} show the trend of the batch size for the different concentration bounds.
 
-\begin{figure}[h!]
+\begin{figure}[t!]
 \includegraphics[width = \textwidth]{Images/batchsize_cheb.pdf}
 \caption[Adaptive batch size over learning iterations in the one-dimensional LQG task using Chebyshev's bound.]{Adaptive batch size over learning iterations in the one-dimensional \ac{LQG} task, using the G(PO)MDP gradient estimator, Chebyshev's bound and $\delta=0.95$.}
 \label{fig:3}
 \end{figure}
 
 \afterpage{
-\begin{figure}[h!]
+\begin{figure}[t!]
 \begin{adjustbox}{center}
 	\subfloat[Hoeffding]{
 	\includegraphics[width = 0.5\linewidth]{Images/batchsize_hoeff.pdf}
@@ -138,7 +141,7 @@ Finally, it is interesting to look at the trend of the batch size over learning 
 
 As expected, the batch size increases as the optimal parameter is approached, since positive improvements require more and more accuracy. The trend is evidently superlinear, with the exception of Hoeffding's bound with the theoretical range bound, which however selects very high batch sizes from the beginning. 
 
-In all the experiments, the step size $\alpha$ is of the order of $10^{-6}$ and does not change significantly over learning iterations.
+In all the experiments, the step size $\alpha$ is of the order of $10^{-5}$ and does not change significantly over learning iterations.
 
 
 \section{Multi-dimensional LQG}\label{sec:lqg2d}
@@ -161,12 +164,12 @@ where both $\boldsymbol{s}$ and $\boldsymbol{a}$ are vectors of size $m$, $C_0$ 
 \[
 \vtheta = \begin{bmatrix}
 \theta_{11} & \theta_{12} \\
-\theta_{21} & \theta_{22}.
-\end{bmatrix}
+\theta_{21} & \theta_{22}
+\end{bmatrix}.
 \]
 Similarly to the one-dimensional case, we set $C_0=\boldsymbol{0}$ without loss of generality. Matrices $Q$ and $R$ can be used to define different objectives.
 
-\subsection{Independent action in two dimensions}
+\subsection{Independent actions in two dimensions}
 By setting $Q$ and $R$ to the identity matrix and using a diagonal covariance $C$, the result are two simultaneous, independent one-dimensional \ac{LQG} problems. Although this fact is intuitive, it may not be trivial for a learning algorithm to exploit it. In particular, we consider the two dimensional case ($m=2$), with covariance matrix:
 \[
 	C = 
@@ -198,7 +201,7 @@ We first use this task to provide empirical evidence to the claim of Corollary \
 In both the simulations we use the G(PO)MDP gradient estimator with variance-minimizing baseline, Chebyshev's bound, $\delta=0.95$ and fixed batch size $N=2000$. We start from $\vtheta = \underline{0}$ and stop after a total of 30 million trajectories. The selected batch size happens to satisfy Assumption \ref{assum:3} for the duration of the experiment. This is necessary to preserve the performance improvement guarantee in both settings.
 Figure \ref{fig:12} shows the expected performance over trajectories for the two experiments.
 
-\begin{figure}[h!]
+\begin{figure}[t!]
 \includegraphics[width=\textwidth,left]{Images/compare_stepsize.pdf}
 \caption[Comparison of the performance of the scalar step size and the non-scalar step size.]{Expected performance over sample trajectories in the two-dimensional \ac{LQG} task, using G(PO)MDP, Chebyshev bound, $\delta=0.95$ and fixed $N=2000$. The performance of the adaptive non-scalar step size proposed in this work is compared with the scalar step size from \cite{NIPS2013_5186}, of which the former is a generalization.}
 \label{fig:12}
@@ -265,8 +268,8 @@ We compare the performance of our algorithm with the one of vanilla policy gradi
 N & $\overline{\Upsilon}$ & Improvement Ratio \\
 \midrule
 Adaptive & -20.50 & 100\% \\
-1000 & -20.50 & 100\% \\
-100 & -19.77 & 0.89\% \\
+1000 & -22.39 & 100\% \\
+100 & -19.77 & 89\% \\
 \bottomrule
 \end{widetable}
 \end{table}
@@ -275,7 +278,7 @@ Results show how a large, fixed batch size can badly affect the convergence rate
 For this task, a small batch size, such as $N=100$, yields a better average performance than our algorithm, but it introduces oscillation, witnessed by a less-than-one improvement ratio.
 These results show how an adaptive batch size, such as the one employed by our algorithm, is able to guarantee monotonic improvement without needlessly sacrificing convergence speed.
 
-\section{Cart-Pole}
+\section{Cart-Pole}\label{sec:cartpole}
 In this section we test our algorithm on a more challenging simulated control task to give an idea of how it could be useful in practice. We use our algorithm to improve an existing policy after a change has been introduced in the environment, to highlight the advantages of our safe approach.
 
 The cart-pole task is a popular \ac{RL} benchmark problem, of which we use a continuous action variant. An inverted pendulum, the pole, is attached to a cart. A force can be applied to the cart, in order to maintain the pole in a vertical position as long as possible. If the pole becomes too much inclined or the cart goes too far to the left or to the right, the task ends.
@@ -307,7 +310,7 @@ At this point we introduce a change in the environment, by doubling the length o
 We run two simulations: the first with the same algorithm used to learn the baseline policy, the second with our adaptive algorithm, using Bernstein's bound with empirical range and $\delta=0.95$.
 Figure \ref{fig:14} shows the performance over trajectories of the two approaches (average performance over the batch is used as representative for all the trajectories in the batch), while Table \ref{tab:4} reports average performance and improvement ratio for the two cases. Note that, since the exact value of the expected performance is not available for this task, we are not able to isolate true performance oscillation from noise due to stochasticity in the environment and in the policy itself. However, the improvement ratio computed on the average performance is still indicative of how steadily the policy is improving.
 
-\begin{figure}[h!]
+\begin{figure}[t!]
 \includegraphics[width = \textwidth]{Images/cartpole.pdf}
 \caption[Expected performance over sample trajectories in the cart-pole task.]{Expected performance over sample trajectories in the modified cart-pole task. The adaptive algorithm with Bernstein's bound and $\delta=0.95$ is compared with vanilla policy gradient with fixed $N=4000$ and $\alpha=1e-2$.}
 \label{fig:14}

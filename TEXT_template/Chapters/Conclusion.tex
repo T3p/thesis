@@ -1,4 +1,4 @@
-\chapter{Conclusions}
+\chapter{Conclusions}\label{chap:conclusion}
 In this thesis we were able to devise an adaptive policy gradient algorithm for Gaussian policies that guarantees monotonic performance improvement with high probability. This algorithm performs coordinate descent and automatically selects both the step size for the parameter updates and the batch size used to collect samples. 
 
 Experiments showed that the algorithm is effective in guaranteeing monotonic improvement, but very conservative in the selection of the batch size. More empirical variants were proposed to address this problem, with satisfying results. However, there is evidence that the method is still quite conservative.
@@ -10,7 +10,7 @@ This would allow to guarantee safety with smaller batches, improving convergence
 
 The bounds proposed in Section \ref{sec:chebyshev} for the REINFORCE and the G(PO)MDP gradient estimators could be improved by taking into consideration also the effect of variance-minimizing baselines. Additionally, similar ad-hoc bounds could be devised for the other gradient estimation algorithms described in Section \ref{sec:pol_grad}.
 
-Another possibility for future work is to extend the results to more classes of policies. The current approach can be applied only to Gaussian policies with linear expectation and constant standard deviation. Although this kind of policy is broadly used in control tasks, it doesn't cover all the possible applications of policy gradient methods. 
+Another possibility for future work is to extend the results to other classes of policies. The current approach can be applied only to Gaussian policies with linear expectation and constant standard deviation. Although this kind of policy is broadly used in control tasks, it does not cover all the possible applications of policy gradient methods. 
 One idea is to generalize the present results, from more complex Gaussian policies to generic parametrized policies.
 It would also be useful to adapt the results to other specific classes of policies that are commonly used in practice. For instance, the Softmax policy is a common choice for tasks characterized by a discrete action space. Appendix \ref{app:softmax} shows a first attempt in this direction, highlighting the main difficulties that arise when the approach used for Gaussian policies has to be adapted to the new class.
 
