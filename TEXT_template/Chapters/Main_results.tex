@@ -93,7 +93,7 @@ which guarantees the following performance improvement:
 \]
 \end{restatable}
 The performance improvement guarantee is obtained simply by substituting the optimal value for $\Lambda$ back into the bound of theorem  \ref{theo:1}.
-Notice that the update induced by the optimal $\Lambda$ corresponds to employing a constant, scalar step size to update just one parameter at a time (the one corresponding to the greatest gradient magnitude).
+Notice that the update induced by $\Lambda^*$ corresponds to employing a constant, scalar step size to update just one parameter at a time (the one corresponding to the greatest gradient magnitude).
 This method is known in the literature as coordinate descent \cite{Boyd:2004:CO:993483}.
 We propose an intuitive explanation of this result: the bound from Theorem \ref{theo:1} is part of the family of performance improvement bounds originated from \cite{kakade2002approximately}. What has been observed in Section \ref{sec:CPI} about the original bound is also valid here: the positive part accounts to the average advantage of the new policy over the old one, while the negative part penalizes large parameter updates, which may result in overshooting. Updating just the parameter corresponding to the larger policy gradient component represents an intuitive trade-off between these two objectives.
 We now show how this result represents an improvement \wrt the adaptive scalar step size proposed in \cite{NIPS2013_5186} for the current setting:
@@ -123,10 +123,10 @@ We denote with $\epsilon_i \geq 0$ a high-probability upper bound on the approxi
 	\Pr(|\gradJ{\theta_i} - \gradApp{\theta_i}| \leq \epsilon_i) \geq 1-\delta.
 \]
 The estimation error heavily depends on the batch size, so we leave the problem of computing such bounds to the following section.
-To adapt the result of Theorem \ref{theo:1} to the stochastic gradient case, we need both a lower bound and an upper bound on $\gradApp{\vtheta}$.
+To adapt the result of Theorem \ref{theo:1} to the stochastic gradient case, we need both a lower bound and an upper bound on $\gradApp{\vtheta}$:
 \begin{align*}
-\gradDown{\vtheta} &= max(|\gradApp{\vtheta}| - \boldsymbol{\epsilon},\boldsymbol{0}) \\
-\gradUp{\vtheta} &= |\gradApp{\vtheta}| + \boldsymbol{\epsilon}
+\gradDown{\vtheta} &= max(|\gradApp{\vtheta}| - \boldsymbol{\epsilon},\boldsymbol{0}), \\
+\gradUp{\vtheta} &= |\gradApp{\vtheta}| + \boldsymbol{\epsilon},
 \end{align*}
 where $\boldsymbol{\epsilon}=[\epsilon_1,\dotsc,\epsilon_m]$ and the maximum operator is component-wise.
 We can now state the following: 
@@ -240,7 +240,7 @@ where $c = \frac{RM_{\phi}^2}{(1-\gamma)^2\sigma^2}\left(\frac{|\mathcal{A}|}{\s
 \]
 \end{restatable}
 
-The complete proof is left to Appendix \ref{app:proofs}, but Figure \ref{fig:0} provides an intuition. The cost function $\Upsilon_\delta$ is plotted over the value of $N$. Real data from one of the experiments of Section \ref{sec:lqg1d} were used. The function is enhanced to make the peaks more visible, without altering the overall shape. We can see two stationary points: call $N_0$ the minimum and $N^*$ the maximum (marked with a diamond). $N_0$ has value $0$ and is also the global minimum. This point corresponds to the case $\epsilon = \norm[\infty]{\gradApp{\vtheta}}$. Going towards $N=0$, $\Upsilon_\delta$ goes to infinity, because of the $1/N$ cost factor. However, for $N<N_0$, Assumption \ref{assum:3} is not satisfied, so no performance improvement can be guaranteed at all. In the feasible region, $N\geq N_0$, local maximum $N^*$ is also the global maximum. This is the optimal batch size.
+The complete proof is left to Appendix \ref{app:proofs}, but Figure \ref{fig:0} provides an intuition. The cost function $\Upsilon_\delta$ is plotted over the value of $N$. Real data from one of the experiments of Section \ref{sec:lqg1d} were used. The function is enhanced to make the peaks more visible, without altering the overall shape. We can see two stationary points: call $N_0$ the minimum and $N^*$ the maximum (marked with a diamond). $N_0$ has value $0$ and is also the global minimum. This point corresponds to the case $\epsilon = \norm[\infty]{\gradApp{\vtheta}}$. Going towards $N=0$, $\Upsilon_\delta$ goes to infinity, because of the $1/N$ cost factor. However, for $N<N_0$, Assumption \ref{assum:3} is not satisfied, so no performance improvement can be guaranteed at all. In the feasible region, $N\geq N_0$, the local maximum $N^*$ is also the global maximum. This is the optimal batch size.
 
 \begin{figure}[H]
 \includegraphics[width = \textwidth,center]{Images/upsilon.pdf}
@@ -296,13 +296,13 @@ We now consider some concentration bounds in more detail, providing the values f
 \subsection{Chebyshev's bound}\label{sec:chebyshev}
 We report here the sample mean version of Chebyshev's bound for a generic stochastic variable $X$:
 \[
-	\Pr(|E[X] - \overline{X}_N| \geq \epsilon) \leq \frac{Var[X]}{N},
+	\Pr(|E[X] - \overline{X}_N| \geq \epsilon) \leq \frac{Var[X]}{\epsilon^2N},
 \]
 where $\overline{X}_N$ is the sample mean over $N$ samples.
 In our case we have:
 \[
 	\delta = \Pr(|\gradJ{\theta_i} - \gradApp{\theta_i}| 
-		\geq \epsilon) \leq \frac{Var[\gradApp{\theta_i}]}{N}.
+		\geq \epsilon) \leq \frac{Var[\gradApp{\theta_i}]}{\epsilon^2N}.
 \]
 This bound is compliant with Assumption \ref{assum:4} and gives the following expression for $d_\delta$:
 \[
@@ -351,10 +351,10 @@ We report Hoeffding's bound applied to our case:
 	\delta = \Pr(|\gradJ{\theta_i} - \gradApp{\theta_i}| \geq \epsilon)
 		 \leq 2e^{-\frac{2\epsilon^2}{N\mathbf{R}^2}},
 \]
-where $\mathbf{R}$ is the range of the gradient approximator, i.e. $|supp(\gradSim{\theta_i})|$.
+where $\mathbf{R}$ is the range of the gradient approximator, i.e. $|\mathop{supp}(\gradSim{\theta_i})|$.
 This bound is compliant with Assumption \ref{assum:4} and gives:
 \[
-d_\delta = \mathbf{R}\sqrt{\frac{\log{2/\delta}}{2}},
+d_\delta = \mathbf{R}\sqrt{\frac{\log{2/\delta}}{2}}.
 \]
 For the class of policies we are considering, i.e. Gaussian with mean linear in the features, the range can be upper bounded under some assumptions:
 

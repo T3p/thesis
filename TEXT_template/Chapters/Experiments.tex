@@ -28,7 +28,7 @@ The policy has a single parameter $\theta$. The optimal value $\theta^*$ can be 
 In all our simulations we use $\sigma_0 = 0$, since all the noise can be modeled on the agent's side without loss of generality. Both action and state variables are bounded to the interval $[-2,2]$ and the initial state is drawn uniformly at random.  
 We use a discount factor $\gamma=0.9$, which gives as optimal parameter $\theta^* \approx -0.59$, corresponding to expected performance $J(\theta^*) \approx -13.21$. The expected performance is very pessimistic, since it does not take into account the bound on actions and states and the limited length of the task horizon, but equally captures the progress of the real performance. A monotonically improving expected performance is a guarantee that the policy is improving without oscillation, even if the measured performance is noisy due to stochasticity in the environment and in the policy itself.
 \paragraph{}
-In our experiments, we are interested both in the convergence speed and in policy oscillation. We call \textit{improvement ratio} the ratio of policy updates that does not result in a worsening of the expected performance. First of all, we want to analyze how the choice of fixed step sizes and batch sizes may affect the improvement ratio and how much it depends on the variability of the trajectories (that in this case is due to the variance of the policy $\sigma$).
+In our experiments, we are interested both in convergence speed and in policy oscillation. We call \textit{improvement ratio} the ratio of policy updates that does not result in a worsening of the expected performance. First of all, we want to analyze how the choice of fixed step sizes and batch sizes may affect the improvement ratio and how much it depends on the variability of the trajectories (that in this case is due to the variance of the policy $\sigma$).
 Table \ref{tab:1} shows the improvement ratio for two parameterizations ($\sigma=0.5$ and $\sigma=1$) when various constant step sizes and batch sizes are used, starting from $\theta=-0.55$ and stopping after a total of one million trajectories. 
 
 \begin{table}[H]
@@ -56,7 +56,7 @@ As expected, small batch sizes combined with large step sizes lead to low improv
 We now proceed to test the methods described in Chapter \ref{chap:main}. 
 In all the following simulations we use $\sigma = 1$ and start from $\theta=0$, stopping after a total of 30 million trajectories.
 
-We start by testing Algorithm \ref{alg:adabatch} with Chebyshev's bound as proposed in Section \ref{sec:chebyshev}. To estimate the gradient, we use the REINFORCE and G(PO)MDP gradient estimators. In both cases, we use optimal baseline from \cite{4867}.
+We start by testing Algorithm \ref{alg:adabatch} with Chebyshev's bound as proposed in Section \ref{sec:chebyshev}. To estimate the gradient, we use the REINFORCE and G(PO)MDP gradient estimators. In both cases, we use optimal baselines from \cite{4867}.
 Figure \ref{fig:1} shows the expected performance over sample trajectories for the two gradient estimators and for different values of $\delta$, the probability with which worsening updates are allowed to take place.
 
  To make this and the following figures more interpretable, some words must be spent on how data were processed. Each learning iteration corresponds to a single value of $\theta$, with a corresponding expected performance. The latter was scaled over time, simply by maintaining the value for all the trajectories of the batch (a closer look to the plot would reveal a series of steps of variable length and height). The horizontal scaling was performed to better capture the improvement of performance over time.
@@ -64,7 +64,7 @@ Figure \ref{fig:1} shows the expected performance over sample trajectories for t
 
 \begin{figure}[t!]
 \includegraphics[width = \textwidth]{Images/chebyshev.pdf}
-\caption[Expected performance over sample trajectories in the one-dimensional LQG task for different gradient estimators ad values of $\delta$.]{Expected performance over sample trajectories in the one-dimensional \ac{LQG} task, using G(PO)MDP and REINFORCE (dashed) gradient estimators and Chebyshev bound, for different values of $\delta$. Expected performance is computed for each parameter update. Data are then scaled to account for the different batch sizes. All results are averaged over 5 runs of 30 million total trajectories each.}
+\caption[Expected performance over sample trajectories in the one-dimensional LQG task for different gradient estimators ad values of $\delta$.]{Expected performance over sample trajectories in the one-dimensional \ac{LQG} task, using G(PO)MDP and REINFORCE (dashed) gradient estimators and Chebyshev's bound, for different values of $\delta$. Expected performance is computed for each parameter update. Data are then scaled to account for the different batch sizes. All results are averaged over 5 runs of 30 million total trajectories each.}
 \label{fig:1}
 \end{figure}
 
@@ -74,7 +74,7 @@ In general REINFORCE performs worse than G(PO)MDP due to its larger variance.
 Larger values of $\delta$  lead to better performance. Notice that an improvement ratio of $1$ is achieved also with large values of $\delta$. This is due to the fact that the bounds used in the development of our method are not tight. Being the method this conservative, in practical applications $\delta$ can be set to a high value to improve the convergence rate.
 
 \begin{table}[t!]
-\caption[Average performance in the one-dimensional LQG task for different gradient estimators, statistical bounds and values of $\delta$.]{Average performance in the one-dimensional \ac{LQG} task for different gradient estimators, statistical bounds and values of $\delta$. All results are averaged over 5 runs ($95\%$ confidence intervals are reported). The abbreviation 'e.r.' stands for 'empirical range'}
+\caption[Average performance in the one-dimensional LQG task for different gradient estimators, statistical bounds and values of $\delta$.]{Average performance in the one-dimensional \ac{LQG} task for different gradient estimators, statistical bounds and values of $\delta$. All results are averaged over 5 runs ($95\%$ confidence intervals are reported). The abbreviation 'e.r.' stands for 'empirical range'.}
 \label{tab:2}
 \centering
 \begin{adjustbox}{width=1.0\linewidth,center}
@@ -145,7 +145,7 @@ In all the experiments, the step size $\alpha$ is of the order of $10^{-5}$ and 
 
 
 \section{Multi-dimensional LQG}\label{sec:lqg2d}
-The one-dimensional \ac{LQG} problem was a good benchmark to compare the performance of different concentration bounds, but does not capture at all the coordinate descent aspect of our algorithm. Luckily, \ac{LQG} can easily be generalized to any number of dimensions $m$.
+The one-dimensional \ac{LQG} problem was a good benchmark to compare the performance of different concentration bounds, but does not capture at all the coordinate descent aspect of our algorithm. Luckily, \ac{LQG} can easily be generalized to any number $m$ of dimensions.
 
 Following the approach of \cite{Pirotta:2015:MRL:2888116.2888124}, we define multi-dimensional \ac{LQG} as an \ac{MDP} with transition model:
 \[
@@ -167,7 +167,7 @@ where both $\boldsymbol{s}$ and $\boldsymbol{a}$ are vectors of size $m$, $C_0$ 
 \theta_{21} & \theta_{22}
 \end{bmatrix}.
 \]
-Similarly to the one-dimensional case, we set $C_0=\boldsymbol{0}$ without loss of generality. Matrices $Q$ and $R$ can be used to define different objectives.
+Similarly to the one-dimensional case, we set $C_0=\underline{0}$ without loss of generality. Matrices $Q$ and $R$ can be used to define different objectives.
 
 \subsection{Independent actions in two dimensions}
 By setting $Q$ and $R$ to the identity matrix and using a diagonal covariance $C$, the result are two simultaneous, independent one-dimensional \ac{LQG} problems. Although this fact is intuitive, it may not be trivial for a learning algorithm to exploit it. In particular, we consider the two dimensional case ($m=2$), with covariance matrix:
@@ -203,7 +203,7 @@ Figure \ref{fig:12} shows the expected performance over trajectories for the two
 
 \begin{figure}[t!]
 \includegraphics[width=\textwidth,left]{Images/compare_stepsize.pdf}
-\caption[Comparison of the performance of the scalar step size and the non-scalar step size.]{Expected performance over sample trajectories in the two-dimensional \ac{LQG} task, using G(PO)MDP, Chebyshev bound, $\delta=0.95$ and fixed $N=2000$. The performance of the adaptive non-scalar step size proposed in this work is compared with the scalar step size from \cite{NIPS2013_5186}, of which the former is a generalization.}
+\caption[Comparison of the performance of scalar and non-scalar step size.]{Expected performance over sample trajectories in the two-dimensional \ac{LQG} task, using G(PO)MDP, Chebyshev bound, $\delta=0.95$ and fixed $N=2000$. The performance of the adaptive non-scalar step size proposed in this work is compared with the scalar step size from \cite{NIPS2013_5186}, of which the former is a generalization.}
 \label{fig:12}
 \end{figure}
 
@@ -220,7 +220,7 @@ To get a better insight on how this happens, it is useful to compare the trend o
 We can see that, although it decreases faster, the non-scalar step size dominates (in magnitude) the scalar one. Basically, the algorithm from \cite{NIPS2013_5186} needs to be more conservative, since more parameters are updated at each learning iteration and their penalties on the guaranteed improvement sum up.
 
 \paragraph{}
-Another interesting difference between the two methods is in the shape of the learned policy parameter $\theta$. In any stochastic policy gradient methods, the gradient components relative to $\theta_{12}$ and $\theta_{21}$ are small if compared to the other two, but not zero. This is due to noise and the result is that, even by starting from $\theta = \underline{0}$, the learned parameter will not be a diagonal matrix like the optimal one. On the contrary, a coordinate descent method like ours will never choose to update $\theta_{12}$ or $\theta_{21}$, because the gradient components associated to $\theta_{11}$ and $\theta_{22}$ are much larger. Starting from $\theta = \underline{0}$, a diagonal matrix is obtained.
+Another interesting difference between the two methods is in the shape of the learned policy parameter $\theta$. In any stochastic policy gradient method, the gradient components relative to $\theta_{12}$ and $\theta_{21}$ are small if compared to the other two, but not zero. This is due to noise and the result is that, even by starting from $\theta = \underline{0}$, the learned parameter will not be a diagonal matrix like the optimal one. On the contrary, a coordinate descent method like ours will never choose to update $\theta_{12}$ or $\theta_{21}$, because the gradient components associated to $\theta_{11}$ and $\theta_{22}$ are much larger. Starting from $\theta = \underline{0}$, a diagonal matrix is obtained.
 Although this does not affect performance significantly, it shows how our algorithm is able to completely avoid useless changes in the current policy, which are potential causes of oscillation. In particular, the final parameter obtained with the scalar step size $\hat{\alpha}^*$ was:
 
 \[

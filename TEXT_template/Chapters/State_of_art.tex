@@ -17,7 +17,7 @@ To explain the phenomenon in more detail, we restrict our analysis to policy gra
 Both of the policy oscillation causes that have been described pose a trade-off between monotonic improvement and speed of convergence. Using small step sizes results in more conservative policy updates, reducing performance oscillation. On the other hand, a small step size can heavily affect convergence speed. Similarly, computing more accurate policy gradient estimates typically requires a large number of samples. Even if the batch size does not affect directly the number of iterations to convergence, it can affect the actual learning time, especially when collecting sample trajectories is time-wise expensive. The resulting trade-off is similar to the well known exploration-exploitation dilemma, and is particularly evident when learning is performed on real systems. In a simulated task with no time limitations, neither convergence speed nor oscillation are major issues, unless convergence is compromised. Instead, in more realistic scenarios, oscillation itself may cause the following problems:
 \begin{itemize}
 \item Dangerous behavior: low performance peaks may correspond to large deviations from the initial policy. Even if the initial policy has been designed to be safe, such deviations may result in behaviors able to damage the system.
-\item Poor long-term performance: Consider the scenario in which learning is performed simultaneously with production, e.g.\ to automatically adjust an existing optimal policy to small changes in the environment, either in a real-time manner or by temporary stopping production. Oscillations in the per-episode performance are paid in terms of long-term performance when they are not justified by a relevant enough overall policy improvement. This loss is similar to the concept of regret caused by exploration.
+\item Poor long-term performance: Consider the scenario in which learning is performed simultaneously with production, e.g.\ to automatically adjust an existing optimal policy to small changes in the environment, either in a real-time manner or by temporarily stopping production. Oscillations in the per-episode performance are paid in terms of long-term performance when they are not justified by a relevant enough overall policy improvement. This loss is similar to the concept of regret caused by exploration.
 \item Selection of suboptimal policies: if the learning process has a fixed duration or must be stopped for some reason, oscillations may lead to the selection of a policy that is not the best seen so far, or is even worse than the initial policy. In highly stochastic environments it can be very difficult to manually reject such sub-par policies, and testing all the policies seen so far may be prohibitively expensive.
 \end{itemize} 
 From all these problems comes the necessity of policy updates that are monotonically increasing.
@@ -30,7 +30,7 @@ In this section we present the main safe approaches approximate to policy iterat
 In \cite{kakade2002approximately}, Kakade and Langford address the policy oscillation problem by limiting the magnitude of the policy updates.
 Let $\pi$ be the current policy and $\pi'$ a greedy policy w.r.t.\ the latest action-value estimate, i.e. :
 \[
-	\pi'(a \mid s) \in \arg\max\limits_{a \in \mathcal{A}} \hat{Q}^{\pi}(s,a)
+	\pi'(a \mid s) \in \arg\max\limits_{a \in \mathcal{A}} \hat{Q}^{\pi}(s,a).
 \]
 The traditional approximate policy update is:
 \[
@@ -48,8 +48,8 @@ The authors were able to compute a lower bound on the performance improvement:
 \]
 where $\epsilon = \max\limits_{s \in \mathcal{S}}|\expected{a}{\pi'}{A^\pi(s,a)}|$. While the positive term obviously depends on the advantage of the greedy policy, the negative one must be intended as a penalty for large policy updates. By maximizing this bound w.r.t.\ $\alpha$, a step size is obtained that guarantees positive performance improvement as long as the advantage is positive, without totally sacrificing the speed of convergence:
 \begin{align}
-&\alpha^* = \frac{(1-\gamma)\mathbb{A}_{\pi,\mu}(\pi')}{4R} \\
-& J_\mu(\pi_{new}) - J_\mu(\pi) \geq \frac{\mathbb{A}^2_{\pi,\mu}(\pi')}{8R}
+&\alpha^* = \frac{(1-\gamma)\mathbb{A}_{\pi,\mu}(\pi')}{4R}, \\
+& J_\mu(\pi_{new}) - J_\mu(\pi) \geq \frac{\mathbb{A}^2_{\pi,\mu}(\pi')}{8R}.
 \end{align}
 When the true advantage cannot be computed and an estimate must be used, monotonic improvement can still be guaranteed with high probability. The resulting algorithm is called \ac{CPI}.
 This methodology inspired the development of several later safe methods.
@@ -91,14 +91,14 @@ The idea is the following: the original policy $\pi$ is reshaped into:
 \[
 	\overline{\pi}(a \mid s) = \nu(a \mid s)(1+\Delta_{\pi}(s,a)),
 \]
-which has the same value function (in the absence of estimation error), i.e.\ $V^{\overline{\pi}} = V^\pi$. The negative term in Equation \ref{eq:normalized_q} ensures that $\overline{\pi}$ is a well defined distribution. Introducing a step size $\alpha$ allows to assign higher probability to actions with positive normalized value function $\Delta_\pi$. A conservative choice for $\alpha$ is $\nicefrac{1}{\norm[\infty]{\Delta_\pi}}$, but the authors also propose more practical alternatives.
+which has the same value function (in the absence of estimation error), \ie $V^{\overline{\pi}} = V^\pi$. The negative term in Equation \ref{eq:normalized_q} ensures that $\overline{\pi}$ is a well defined distribution. Introducing a step size $\alpha$ allows to assign higher probability to actions with positive normalized value function $\Delta_\pi$. A conservative choice for $\alpha$ is $\nicefrac{1}{\norm[\infty]{\Delta_\pi}}$, but the authors also propose more practical alternatives.
 The resulting algorithm is called \ac{LPI}. The authors show that the performance improvement guarantee of \ac{LPI} is better than the one of \ac{CPI}, at the same time allowing for bigger policy updates, hence faster convergence.
 
 \section{Safe Policy Gradient}\label{sec:spg}
 In this section we present the state of the art in safe policy gradient methods and suggest a possible direction for further developments.
 
 \subsection{The role of the step size}
-Most of the safe policy gradient methods that have been proposed so far focus on the selection of the proper step size $\alpha$.
+Most of the safe policy gradient methods that have been proposed so far focus on the selection of a proper step size $\alpha$.
 The step size regulates the magnitude of the parameter updates. Although the relationship between $\Delta\vtheta$ and the actual change in the policy is parametrization-dependent (at least for vanilla policy gradients) and may be non-trivial, in general small step sizes produce small changes in the policy, hence small performance oscillations. However, reducing the step-size also reduces the convergence speed, which is a major drawback in most applications. 
 The traditional solution is to employ line search to select the optimal step size for each problem. Although effective in supervised learning \cite{More:1994:LSA:192115.192132}, this approach can be prohibitively expensive in \ac{RL}. 
 An alternative is to make the step size adaptive, i.e.\ to compute it at each learning iteration from collected data.

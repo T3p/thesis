@@ -1,11 +1,11 @@
 \chapter{Reinforcement Learning Preliminaries}\label{chap:prelim}
-In this chapter we provide an introduction to the reinforcement learning framework and to policy gradient.
+In this chapter we provide an introduction to the reinforcement learning framework and to policy gradient methods.
 The aim is to introduce concepts that will be used extensively in the following chapters. For a complete treatment of reinforcement learning, refer to \cite{Sutton:1998:IRL:551283}.
 
 In Section \ref{sec:MDP} we present the Markov Decision Process model and define the Reinforcement Learning problem. In Section \ref{sec:overview} we provide an overview of Reinforcement Learning algorithms, while Section \ref{sec:pol_grad} is entirely dedicated to policy gradient methods.
 
 \section{Markov Decision Processes}\label{sec:MDP}
-In this section we provide a brief treatment on the model at the root of most \ac{RL} algorithms, including policy gradient methods: the \ac{MDP}.  
+In this section we provide a brief treatment of the model at the root of most \ac{RL} algorithms, including policy gradient methods: the \ac{MDP}.  
 Following the opposite direction than the one usually adopted by Reinforcement Learning textbooks, we first formalize continuous \ac{MDP}s. The discrete \ac{MDP} model will be introduced later as a special case. This is justified by the scope of our work.
 
 \subsection{The model}
@@ -149,7 +149,7 @@ A typical policy update for phase 2 is the greedy policy improvement:
 which employs deterministic policies. When the value function $Q^\pi$ can be computed exactly for each state-action pair, policy iteration with greedy policy improvement is guaranteed to converge to an optimal policy \cite{Puterman:1979:CPI:2778782.2778787}.
 
 \paragraph{} % Approximate PI
-In most \ac{RL} problems the value function $Q^\pi$ cannot be computed exactly, but can be estimated from samples. Given the sampling nature of the approach, some stochasticity must be included in the policy to ensure sufficient exploration of the state-action space. Several algorithms are known for discrete \ac{MDP}s with reasonably small state and action spaces \cite{Sutton:1998:IRL:551283}. These algorithms are also called tabular, because the value function can be stored in a finite table.
+In most \ac{RL} problems, the value function $Q^\pi$ cannot be computed exactly, but can be estimated from samples. Given the sampling nature of the approach, some stochasticity must be included in the policy to ensure sufficient exploration of the state-action space. Several algorithms are known for discrete \ac{MDP}s with reasonably small state and action spaces \cite{Sutton:1998:IRL:551283}. These algorithms are also called tabular, because the value function can be stored in a finite table.
 Tabular algorithms mainly differ for the way the value function is estimated. The two main families are \ac{MC} methods, which are episodic, and \ac{TD} algorithms, which are continuing. 
 Convergence guarantees are available for most of these algorithms \cite{Tsitsiklis02} \cite{sutton1988learning} \cite{Dayan1992} \cite{watkins1992q} \cite{jaakkola1994convergence}.
 
@@ -226,7 +226,7 @@ Many elements are left open in this schema: how to pick batch size $N$ and step 
 \subsection{Finite differences}
 Among the oldest policy gradient methods we find finite-difference methods \cite{Glynn:1990:LRG:84537.84552}, which arose in the stochastic simulation literature. The idea is to perturb the policy parameter $\vtheta$ many times, obtaining $\vtheta+\Delta\vtheta_1 \dots \vtheta+\Delta\vtheta_K$, and estimate for each perturbation the expected return difference $\Delta\hat{J}_i \simeq J(\vtheta+\Delta\vtheta_i) - J(\vtheta)$, by performing a number of sample trajectories. After collecting all these data, the policy gradient can be estimated by regression as:
 \[
-	\gradApp{\vtheta} = (\boldsymbol{\Delta\Theta}^T\boldsymbol{\Delta\Theta})^{-1}\boldsymbol{\Delta\Theta}^T\boldsymbol{\Delta\hat{J}}
+	\gradApp{\vtheta} = (\boldsymbol{\Delta\Theta}^T\boldsymbol{\Delta\Theta})^{-1}\boldsymbol{\Delta\Theta}^T\boldsymbol{\Delta\hat{J}},
 \]
 where $\boldsymbol{\Delta\Theta}^T = [\Delta\vtheta_1,\dots,\Delta\vtheta_K]^T$ and $\boldsymbol{\Delta\hat{J}} = [\Delta\hat{J}_1,\dots,\Delta\hat{J}_K]^T$. This method is easy to implement and very efficient when applied to deterministic tasks or pseudo-random number simulations. In real control tasks though, perturbing the policy parametrization without incurring in instability may not be trivial and noise can have a severe impact on performance. Moreover, this kind of gradient estimation requires a large number of trajectories.
 
@@ -247,7 +247,7 @@ In terms of the joint distribution $\zeta_{\mu,\vtheta}$, the policy gradient is
 \[
 	\gradJ{\vtheta} = \mathop{\mathbf{E}}_{(s,a)\sim\zeta_{\mu,\vtheta}}\left[\score Q^{\pi}(s,a)\right].
 \]
-Since sampling state-action pairs from $\zeta$ is equivalent to following policy $\pi_{\vtheta}$, the gradient can be estimated from a single trajectory as:
+Since sampling state-action pairs from $\zeta_{\mu,\theta}$ is equivalent to following policy $\pi_{\vtheta}$, the gradient can be estimated from a single trajectory as:
 \[
 	\gradSim{\vtheta} = \langle\score Q^{\pi}(s,a)\rangle_H,
 \]
@@ -260,10 +260,10 @@ where $\langle\cdot\rangle_H$ denotes sample average over $H$ time steps. Of cou
 A problem of the REINFORCE approach is the large variance of the estimate, which results in slower convergence.
 The Policy Gradient Theorem still holds when an arbitrary baseline $b(s)$ is subtracted from the action-value function, as shown in \cite{Williams1992}:
 \[
-	\gradJ{\vtheta} = \mathop{\mathbf{E}}_{(s,a)\sim\zeta}
+	\gradJ{\vtheta} = \mathop{\mathbf{E}}_{(s,a)\sim\zeta_{\mu,\theta}}
 		\left[\score (Q^{\pi}(s,a) - b(s))\right].
 \]
-The baseline can be chosen to reduce the variance of the gradient estimate without introducing any bias, speeding up convergence. A natural choice of baseline is the state-value function $V^{\pi}$, because it normalizes the value of the actions according to the overall value of the state, preventing overestimation of the possible improvement. This is equivalent to employ the advantage function in place of the action-value function:
+The baseline can be chosen to reduce the variance of the gradient estimate without introducing any bias, speeding up convergence. A natural choice of baseline is the state-value function $V^{\pi}$, because it normalizes the value of the actions according to the overall value of the state, preventing overestimation of the possible improvement. This is equivalent to employing the advantage function in place of the action-value function:
 \begin{align*}
 	\gradJ{\vtheta} &= \mathop{\mathbf{E}}_{(s,a)\sim\zeta}
 		\left[\score (Q^{\pi}(s,a) - V^{\pi}(s))\right] \\
@@ -344,7 +344,7 @@ Actor and critic meet when $\hat{Q}_{\boldsymbol{w}}$ is used to compute the pol
 \begin{equation}\label{eq:ac_update} 
 	\vtheta \gets \vtheta + \langle\score \hat{Q}_{\boldsymbol{w}}(s,a)\rangle_H.
 \end{equation}
-This approach exploits the predictive power of approximate value functions while preserving the nice theoretical properties of the policy gradient. Under some assumptions on the critic function (see Theorem 2 in \cite{Sutton1999a}), the Policy Gradient Theorem is still valid when $\hat{Q}_{\boldsymbol{w}}$ is used in place of the true value function $Q^\pi$:
+This approach exploits the predictive power of approximate value functions while preserving the nice theoretical properties of policy gradient. Under some assumptions on the critic function (see Theorem 2 in \cite{Sutton1999a}), the Policy Gradient Theorem is still valid when $\hat{Q}_{\boldsymbol{w}}$ is used in place of the true value function $Q^\pi$:
 \[
 	\gradJ{\vtheta} = \int_{\mathcal{S}}d_{\mu}^{\pi}(s)
 		\int_{\mathcal{A}}\pi_{\vtheta}(a \mid s)\score
